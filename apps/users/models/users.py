@@ -5,7 +5,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 from django.db import models
 
-# Utils
+# Third party utils
 from djchoices import ChoiceItem, DjangoChoices
 
 # Models
