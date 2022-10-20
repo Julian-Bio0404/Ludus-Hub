@@ -29,7 +29,7 @@ class UserModelSerializer(serializers.ModelSerializer):
         fields = [
             'username', 'first_name',
             'last_name', 'email',
-            'phone_number', 'profile',
+            'phone_number',
             'verified', 'role'
         ]
 
@@ -69,9 +69,9 @@ class UserSignUpSerializer(serializers.Serializer):
     last_name = serializers.CharField(min_length=2, max_length=30)
 
     # Role
-    def role_validator(rol):
+    def role_validator(role):
         """Verify the role."""
-        if rol not in User.Role.choices:
+        if role not in User.Role.values.keys():
             raise serializers.ValidationError('Role not allowed.')
 
     role = serializers.CharField(
