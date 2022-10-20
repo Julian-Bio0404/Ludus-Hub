@@ -1,0 +1,24 @@
+"""Users tasks."""
+
+from __future__ import absolute_import, unicode_literals
+
+# Utils
+from apps.utils.email import send_email, token_generation
+
+# Celery
+from taskapp.celery import app
+
+
+@app.task(bind=True)
+def send_verification_email(self, user_data: dict) -> bool:
+    """Send account verification link to given user."""
+    username = user_data['username']
+    token = token_generation(username, type='email_confirmation')
+    email_data = {
+        'subject': f"Welcome @{username}! Verify your account",
+        'template': 'users/account_verification.html',
+        'context': {'token': token, 'user': username},
+        'email': user_data['email']
+    }
+    send_email(**email_data)
+    return True
