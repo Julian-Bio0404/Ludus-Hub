@@ -60,7 +60,7 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [str(APPS_DIR.path('templates'))],
+        'DIRS': [str(BASE_DIR.path('templates'))],
         'OPTIONS': {
             'debug': DEBUG,
             'loaders': [
