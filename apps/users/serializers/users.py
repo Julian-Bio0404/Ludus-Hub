@@ -16,6 +16,9 @@ from rest_framework.validators import UniqueValidator
 # Models
 from apps.users.models import User
 
+# Tasks
+from taskapp.tasks import send_verification_email
+
 
 class UserModelSerializer(serializers.ModelSerializer):
     """User model serializer."""
@@ -85,9 +88,12 @@ class UserSignUpSerializer(serializers.Serializer):
         return data
 
     def create(self, data):
-        """Handle user and profile creation"""
+        """Create user."""
         data.pop('password_confirmation')
-        return User.objects.create_user(**data)
+        user = User.objects.create_user(**data)
+        user_data = UserModelSerializer(user).data
+        send_verification_email.delay(user_data=user_data)
+        return user
 
 
 class UserLoginSerializer(serializers.Serializer):
