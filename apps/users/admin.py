@@ -22,18 +22,9 @@ class CustomUserAdmin(UserAdmin):
 
     list_display_links = ['pk', 'username']
 
-    readonly_fields = [
-        'pk',
-        'first_name', 'last_name',
-        'username', 'email',
-        'phone_number', 'role',
-        'created', 'updated'
-    ]
-
     search_fields = [
         'username', 'email',
-        'first_name', 'last_name',
-        'verified'
+        'first_name', 'last_name'
     ]
 
     list_filter = ['verified', 'role']
@@ -43,4 +34,7 @@ class CustomUserAdmin(UserAdmin):
         return False
 
     def has_delete_permission(self, request, obj=None) -> bool:
+        return False
+
+    def has_change_permission(self, request, obj=None) -> bool:
         return False
