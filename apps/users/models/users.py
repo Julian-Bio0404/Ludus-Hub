@@ -21,7 +21,7 @@ class User(SportfyModel, AbstractUser):
     class Role(DjangoChoices):
         """User role choices."""
         athlete = ChoiceItem('athlete', 'Athlete')
-        coach = ChoiceItem('trainer', 'Trainer')
+        trainer = ChoiceItem('trainer', 'Trainer')
 
     email = models.EmailField(
         'email address', unique=True,

@@ -1,8 +1,10 @@
+# Utilities
 from typing import Any, Sequence
-
-from apps.users.models import User
 from factory import Faker, post_generation
 from factory.django import DjangoModelFactory
+
+# Models
+from apps.users.models import User
 
 
 class UserFactory(DjangoModelFactory):
@@ -10,23 +12,13 @@ class UserFactory(DjangoModelFactory):
 
     username = Faker('user_name')
     email = Faker('email')
-    name = Faker('name')
+    first_name = Faker('name')
+    last_name = Faker('name')
     role = User.Role.athlete
 
     @post_generation
     def password(self, create: bool, extracted: Sequence[Any], **kwargs):
-        password = (
-            extracted
-            if extracted
-            else Faker(
-                'password',
-                length=42,
-                special_chars=True,
-                digits=True,
-                upper_case=True,
-                lower_case=True,
-            ).generate(extra_kwargs={})
-        )
+        password = extracted if extracted else 'admin123'
         self.set_password(password)
 
     class Meta:

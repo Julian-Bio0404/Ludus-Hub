@@ -36,3 +36,11 @@ TEMPLATES[0]["OPTIONS"]["loaders"] = [  # NOQA
 EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 EMAIL_HOST = "localhost"
 EMAIL_PORT = 1025
+
+
+# Celery
+CELERY_BROKER_URL = env('REDIS_URL')
+CELERY_RESULT_BACKEND = CELERY_BROKER_URL
+
+CELERY_TASK_ALWAYS_EAGER = True
+CELERY_TASK_EAGER_PROPAGATES = True
