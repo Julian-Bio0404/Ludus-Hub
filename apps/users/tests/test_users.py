@@ -9,15 +9,21 @@ from rest_framework import status
 # Models
 from apps.users.models import User
 
+# Factories
+from apps.users.tests.factories import UserFactory
+
+# Utils
+from apps.utils.email import token_generation
+
 pytestmark = pytest.mark.django_db
 
 
 class TestUserCase:
 
     def test_user_signup(self, api_client):
-        request_body = {
+        body = {
             'email': 'test@test.com',
-            'username': 'usertest00',
+            'username': 'usertest',
             'first_name': 'First User',
             'last_name': 'First User',
             'phone_number': '+99 9999999999',
@@ -25,7 +31,143 @@ class TestUserCase:
             'password': 'aipdsaapU',
             'password_confirmation': 'aipdsaapU'
         }
-        response = api_client.post(reverse('users:users-signup'), request_body)
-        user = User.objects.first()
+
+        # Check with invalid phone number
+        body1 = body.copy()
+        body1['phone_number'] = '99999999'
+        response = api_client.post(reverse('users:users-signup'), body1)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+        # Check with invalid role
+        body2 = body.copy()
+        body2['role'] = 'xxxxxxxxxx'
+        response = api_client.post(reverse('users:users-signup'), body2)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+        # Check with password != password_confirmation
+        body3 = body.copy()
+        body3['password'] = 'aipdsaapU'
+        body3['password_confirmation'] = 'aipdsaapO'
+        response = api_client.post(reverse('users:users-signup'), body3)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+        # Check with already existing username
+        user2 = UserFactory(username='usertest01')
+        body4 = body.copy()
+        body4['username'] = user2.username
+        response = api_client.post(reverse('users:users-signup'), body4)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+        # Check with already existing email
+        body5 = body.copy()
+        body5['email'] = user2.email
+        response = api_client.post(reverse('users:users-signup'), body5)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+        # Check signup sucess
+        response = api_client.post(reverse('users:users-signup'), body)
+        user = User.objects.filter(username='usertest')
         assert response.status_code == status.HTTP_201_CREATED
-        assert user.username == 'usertest00'
+        assert user.exists()
+
+    def test_user_verification(self, athlete_client):
+        assert athlete_client.user.verified is False
+
+        # Check with invalid token
+        body = {'token': 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'}
+        response = athlete_client.post(reverse('users:users-verify'), body)
+        user = User.objects.get(username=athlete_client.user.username)
+        assert user.verified is False
+        assert response.status_code, status.HTTP_400_BAD_REQUEST
+
+        # Check with invalid type token
+        token = token_generation(
+            username=athlete_client.user.username, type='update_email')
+        body = {'token': token}
+        response = athlete_client.post(reverse('users:users-verify'), body)
+        user.refresh_from_db(fields=['verified'])
+        assert user.verified is False
+        assert response.status_code, status.HTTP_400_BAD_REQUEST
+
+        # Check with valid token
+        token = token_generation(
+            username=athlete_client.user.username, type='email_confirmation')
+        body = {'token': token}
+        response = athlete_client.post(reverse('users:users-verify'), body)
+        user.refresh_from_db(fields=['verified'])
+        assert user.verified
+        assert response.status_code, status.HTTP_200_OK
+
+    def test_user_login(self, api_client):
+        body = {
+            'email': 'test04@gmail.com',
+            'username': 'test04',
+            'first_name': 'test00',
+            'last_name': 'test00',
+            'phone_number': '+99 9999999999',
+            'role': User.Role.athlete,
+            'password': 'nKSAJBBCJW_',
+            'password_confirmation': 'nKSAJBBCJW_'
+        }
+        api_client.post(reverse('users:users-signup'), body)
+
+        # Check with unverified user
+        user = User.objects.get(username='test04')
+        body = {
+            'email': user.email,
+            'password': 'nKSAJBBCJW_'
+        }
+        response = api_client.post(reverse('users:users-login'), body)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+        # Check with verified user
+        user.verified = True
+        user.save()
+        response = api_client.post(reverse('users:users-login'), body)
+        assert response.status_code == status.HTTP_201_CREATED
+
+        # Check with wrong password
+        body['password'] = 'nKSAJBBCJW'
+        response = api_client.post(reverse('users:users-login'), body)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_update_password(self, api_client):
+        """Verifies that update password is success."""
+        user = User.objects.create_user(
+            username='usertest00',
+            first_name='First test',
+            last_name='First test',
+            email='test@test.com',
+            role='athlete',
+            verified=True,
+            password='6iu8989buy79'
+        )
+        api_client.force_authenticate(user=user)
+        url = reverse('users:users-update-psswd', args=[user.username])
+
+        # Check with password != old password
+        body = {
+            'old_password': '6iu8989buy79',
+            'password': '6iu8989buy7',
+            'password_confirmation': 'prueba1234'
+        }
+        response = api_client.put(url, body)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+        # Check wrong password.
+        body['old_password'] = 'admin1234'
+        response = api_client.put(url, body)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+        # Success
+        body['old_password'] = '6iu8989buy79'
+        body['password_confirmation'] = '6iu8989buy7'
+        response = api_client.put(url, body)
+        assert response.status_code == status.HTTP_200_OK
+
+        body = {
+            'email': user.email,
+            'password': '6iu8989buy7'
+        }
+        response = api_client.post(reverse('users:users-login'), body)
+        assert response.status_code == status.HTTP_201_CREATED

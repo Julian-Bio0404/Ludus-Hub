@@ -41,7 +41,7 @@ def trainer_client(trainer_user) -> APIClient:
 
 
 @pytest.fixture(scope='function')
-def api_client(trainer_user) -> APIClient:
+def api_client() -> APIClient:
     """Anonymous client."""
     client = APIClient()
     return client
