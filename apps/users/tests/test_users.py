@@ -31,72 +31,73 @@ class TestUserCase:
             'password': 'aipdsaapU',
             'password_confirmation': 'aipdsaapU'
         }
-
+        url = reverse('users:users-signup')
         # Check with invalid phone number
         body1 = body.copy()
         body1['phone_number'] = '99999999'
-        response = api_client.post(reverse('users:users-signup'), body1)
+        response = api_client.post(url, body1)
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
         # Check with invalid role
         body2 = body.copy()
         body2['role'] = 'xxxxxxxxxx'
-        response = api_client.post(reverse('users:users-signup'), body2)
+        response = api_client.post(url, body2)
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
         # Check with password != password_confirmation
         body3 = body.copy()
         body3['password'] = 'aipdsaapU'
         body3['password_confirmation'] = 'aipdsaapO'
-        response = api_client.post(reverse('users:users-signup'), body3)
+        response = api_client.post(url, body3)
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
         # Check with already existing username
         user2 = UserFactory(username='usertest01')
         body4 = body.copy()
         body4['username'] = user2.username
-        response = api_client.post(reverse('users:users-signup'), body4)
+        response = api_client.post(url, body4)
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
         # Check with already existing email
         body5 = body.copy()
         body5['email'] = user2.email
-        response = api_client.post(reverse('users:users-signup'), body5)
+        response = api_client.post(url, body5)
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
         # Check signup sucess
-        response = api_client.post(reverse('users:users-signup'), body)
+        response = api_client.post(url, body)
         user = User.objects.filter(username='usertest')
         assert response.status_code == status.HTTP_201_CREATED
         assert user.exists()
 
     def test_user_verification(self, athlete_client):
+        url = reverse('users:users-verify')
         assert athlete_client.user.verified is False
 
         # Check with invalid token
         body = {'token': 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'}
-        response = athlete_client.post(reverse('users:users-verify'), body)
+        response = athlete_client.post(url, body)
         user = User.objects.get(username=athlete_client.user.username)
         assert user.verified is False
-        assert response.status_code, status.HTTP_400_BAD_REQUEST
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
 
         # Check with invalid type token
         token = token_generation(
             username=athlete_client.user.username, type='update_email')
         body = {'token': token}
-        response = athlete_client.post(reverse('users:users-verify'), body)
+        response = athlete_client.post(url, body)
         user.refresh_from_db(fields=['verified'])
         assert user.verified is False
-        assert response.status_code, status.HTTP_400_BAD_REQUEST
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
 
         # Check with valid token
         token = token_generation(
             username=athlete_client.user.username, type='email_confirmation')
         body = {'token': token}
-        response = athlete_client.post(reverse('users:users-verify'), body)
+        response = athlete_client.post(url, body)
         user.refresh_from_db(fields=['verified'])
         assert user.verified
-        assert response.status_code, status.HTTP_200_OK
+        assert response.status_code == status.HTTP_200_OK
 
     def test_user_login(self, api_client):
         body = {
@@ -110,6 +111,7 @@ class TestUserCase:
             'password_confirmation': 'nKSAJBBCJW_'
         }
         api_client.post(reverse('users:users-signup'), body)
+        url = reverse('users:users-login')
 
         # Check with unverified user
         user = User.objects.get(username='test04')
@@ -117,18 +119,18 @@ class TestUserCase:
             'email': user.email,
             'password': 'nKSAJBBCJW_'
         }
-        response = api_client.post(reverse('users:users-login'), body)
+        response = api_client.post(url, body)
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
         # Check with verified user
         user.verified = True
         user.save()
-        response = api_client.post(reverse('users:users-login'), body)
+        response = api_client.post(url, body)
         assert response.status_code == status.HTTP_201_CREATED
 
         # Check with wrong password
         body['password'] = 'nKSAJBBCJW'
-        response = api_client.post(reverse('users:users-login'), body)
+        response = api_client.post(url, body)
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     def test_update_password(self, api_client):
@@ -217,6 +219,6 @@ class TestUserCase:
             'token': token
         }
         response = athlete_client.post(url, body)
-        user = User.objects.get(username=athlete_client.user.username)
+        user.refresh_from_db(fields=['password'])
         assert athlete_client.user.password != user.password
         assert response.status_code == status.HTTP_200_OK
