@@ -22,3 +22,18 @@ def send_verification_email(self, user_data: dict) -> bool:
     }
     send_email(**email_data)
     return True
+
+
+@app.task(bind=True)
+def send_restore_password_email(self, user_data: dict) -> bool:
+    """Send restore password link to given user."""
+    username = user_data['username']
+    token = token_generation(username, type='restore_password')
+    email_data = {
+        'subject': 'Update your password',
+        'template': 'users/restore_password.html',
+        'context': {'token': token, 'user': username},
+        'email': user_data['email']
+    }
+    send_email(**email_data)
+    return True
