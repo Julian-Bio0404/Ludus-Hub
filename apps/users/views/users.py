@@ -21,15 +21,15 @@ class UserViewSet(viewsets.GenericViewSet):
     """
     User view set.
     Handle signup, login, account
-    verification and update password.
+    verification update and restore password.
     """
 
     def get_permissions(self):
         """Assign permissions based on action."""
-        if self.action in ['signup', 'login', 'verify']:
-            permissions = [AllowAny]
-        elif self.action in ['update_psswd']:
+        if self.action == 'update_psswd':
             permissions = [IsAuthenticated]
+        else:
+            permissions = [AllowAny]
         return [p() for p in permissions]
 
     @action(detail=False, methods=['post'])

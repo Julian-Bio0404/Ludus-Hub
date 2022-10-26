@@ -171,3 +171,52 @@ class TestUserCase:
         }
         response = api_client.post(reverse('users:users-login'), body)
         assert response.status_code == status.HTTP_201_CREATED
+
+    def test_restore_psswd_token(self, athlete_client):
+        url = reverse('users:users-token-restore-psswd')
+        body = {'email': athlete_client.user.email}
+        response = athlete_client.post(url, body)
+        assert response.status_code == status.HTTP_200_OK
+
+        # Check with user that does not exist
+        body['email'] = 'prueba@p.com'
+        response = athlete_client.post(url, body)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_restore_password(self, athlete_client):
+        # Check invalid token
+        url = reverse('users:users-restore-psswd')
+        body = {
+            'password': 'knjxlksjbda',
+            'password_confirmation': 'knjxlksjbda',
+            'token': 'xxxxxxxxxxxxxxxxxxxxxxxxxxxx'
+        }
+        response = athlete_client.post(url, body)
+        user = User.objects.get(username=athlete_client.user.username)
+        assert athlete_client.user.password == user.password
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+        # Check invalid token type
+        token = token_generation(
+            username=athlete_client.user.username, type='update_email')
+        body = {
+            'password': 'knjxlksjbda',
+            'password_confirmation': 'knjxlksjbda',
+            'token': token
+        }
+        response = athlete_client.post(url, body)
+        assert athlete_client.user.password == user.password
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+        # Success
+        token = token_generation(
+            username=athlete_client.user.username, type='restore_password')
+        body = {
+            'password': 'knjxlksjbda',
+            'password_confirmation': 'knjxlksjbda',
+            'token': token
+        }
+        response = athlete_client.post(url, body)
+        user = User.objects.get(username=athlete_client.user.username)
+        assert athlete_client.user.password != user.password
+        assert response.status_code == status.HTTP_200_OK
