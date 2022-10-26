@@ -218,12 +218,16 @@ class RestorePasswordSerializer(serializers.Serializer):
 
         if payload['type'] != 'restore_password':
             raise serializers.ValidationError('Invalid token')
-        self.context['payload'] = payload
+
+        user = User.objects.filter(username=payload['user']).last()
+        if not user:
+            raise serializers.ValidationError('User does not exists.')
+
+        self.context['user'] = user
         return data
 
     def save(self):
         """Restore user's password."""
-        payload = self.context['payload']
-        user = User.objects.get(username=payload['user'])
+        user = self.context['user']
         user.set_password(self.validated_data['password'])
         user.save()

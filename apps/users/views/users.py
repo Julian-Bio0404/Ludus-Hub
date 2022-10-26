@@ -3,13 +3,15 @@
 # Django REST framework
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.response import Response
 
 # Permissions
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
 
 # Serializers
 from apps.users.serializers import (AccountVerificationSerializer,
+                                    RestorePasswordSerializer,
+                                    TokenRestorePasswordSerializer,
                                     UpdatePasswordSerializer,
                                     UserLoginSerializer, UserModelSerializer,
                                     UserSignUpSerializer)
@@ -68,4 +70,22 @@ class UserViewSet(viewsets.GenericViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         data = {'message': 'Your password has been updated.'}
+        return Response(data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['post'])
+    def token_restore_psswd(self, request):
+        """Create a token for restore password."""
+        serializer = TokenRestorePasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = {
+            'message': 'We have sent an email for you to reset your password.'}
+        return Response(data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['post'])
+    def restore_psswd(self, request):
+        """Restore user's password."""
+        serializer = RestorePasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        data = {'message': 'Your password has been reset.'}
         return Response(data, status=status.HTTP_200_OK)
