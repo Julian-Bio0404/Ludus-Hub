@@ -16,6 +16,9 @@ from rest_framework.validators import UniqueValidator
 # Models
 from apps.users.models import User
 
+# Tasks
+from taskapp.tasks import send_restore_password_email
+
 
 class UserModelSerializer(serializers.ModelSerializer):
     """User model serializer."""
@@ -169,5 +172,58 @@ class UpdatePasswordSerializer(serializers.Serializer):
     def save(self):
         """Update user's password."""
         user = self.context['user']
+        user.set_password(self.validated_data['password'])
+        user.save()
+
+
+class TokenRestorePasswordSerializer(serializers.Serializer):
+    """Token restore password serializer."""
+
+    email = serializers.EmailField()
+
+    def validate_email(self, data):
+        """Check user's email."""
+        try:
+            user = User.objects.get(email=data)
+        except User.DoesNotExist:
+            raise serializers.ValidationError('User does not exist.')
+        data = {
+            'username': user.username,
+            'email': user.email
+        }
+        send_restore_password_email.delay(user_data=data)
+        return user
+
+
+class RestorePasswordSerializer(serializers.Serializer):
+    """Restore user's password serializer."""
+
+    password = serializers.CharField(
+        required=True, min_length=8, max_length=64)
+
+    password_confirmation = serializers.CharField(
+        required=True, min_length=8, max_length=64)
+
+    token = serializers.CharField()
+
+    def validate_token(self, data):
+        """Verify token is valid."""
+        try:
+            payload = jwt.decode(
+                data, settings.SECRET_KEY, algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise serializers.ValidationError('Verification link has expired.')
+        except jwt.PyJWTError:
+            raise serializers.ValidationError('Invalid token')
+
+        if payload['type'] != 'restore_password':
+            raise serializers.ValidationError('Invalid token')
+        self.context['payload'] = payload
+        return data
+
+    def save(self):
+        """Restore user's password."""
+        payload = self.context['payload']
+        user = User.objects.get(username=payload['user'])
         user.set_password(self.validated_data['password'])
         user.save()

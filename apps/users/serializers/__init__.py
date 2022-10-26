@@ -1,5 +1,4 @@
-from .users import ( # noqa
-    AccountVerificationSerializer,
-    UpdatePasswordSerializer, UserLoginSerializer,
-    UserModelSerializer, UserSignUpSerializer
-)
+from .users import (AccountVerificationSerializer,  # noqa
+                    TokenRestorePasswordSerializer, UpdatePasswordSerializer,
+                    UserLoginSerializer, UserModelSerializer,
+                    UserSignUpSerializer)
