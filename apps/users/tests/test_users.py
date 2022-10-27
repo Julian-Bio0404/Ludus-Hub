@@ -7,7 +7,7 @@ from django.urls import reverse
 from rest_framework import status
 
 # Models
-from apps.users.models import User
+from apps.users.models import Profile, User
 
 # Factories
 from apps.users.tests.factories import UserFactory
@@ -66,9 +66,9 @@ class TestUserCase:
 
         # Check signup sucess
         response = api_client.post(url, body)
-        user = User.objects.filter(username='usertest')
+        user = User.objects.get(username='usertest')
+        Profile.objects.get(user=user)
         assert response.status_code == status.HTTP_201_CREATED
-        assert user.exists()
 
     def test_user_verification(self, athlete_client):
         url = reverse('users:users-verify')

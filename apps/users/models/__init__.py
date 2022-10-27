@@ -1,1 +1,1 @@
-from .users import User # NOQA
+from .users import Profile, User  # NOQA
