@@ -8,10 +8,10 @@ from rest_framework.permissions import IsAuthenticated
 from apps.users.permissions import IsProfileOwner
 
 # Models
-from apps.users.models import Profile
+from apps.users.models import User
 
 # Serializers
-from apps.users.serializers import ProfileModelSerializer
+from apps.users.serializers import UserModelSerializer
 
 
 class ProfileViewSet(mixins.ListModelMixin,
@@ -23,10 +23,9 @@ class ProfileViewSet(mixins.ListModelMixin,
     Handle update, retrieve and list profiles
     """
 
-    queryset = Profile.objects.filter(
-        user__verified=True).select_related('user')
-    serializer_class = ProfileModelSerializer
-    lookup_field = 'user__username'
+    queryset = User.objects.filter(verified=True).select_related('profile')
+    serializer_class = UserModelSerializer
+    lookup_field = 'username'
 
     def get_permissions(self):
         """Assign permissions based on action."""

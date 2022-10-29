@@ -9,4 +9,4 @@ class IsProfileOwner(BasePermission):
 
     def has_object_permission(self, request, view, obj):
         """Check obj and user profile are the same."""
-        return request.user.profile == obj
+        return request.user == obj

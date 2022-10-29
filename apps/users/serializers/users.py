@@ -19,25 +19,36 @@ from apps.users.models import User
 # Tasks
 from taskapp.tasks import send_restore_password_email
 
+from .profiles import ProfileModelSerializer
+
 
 class UserModelSerializer(serializers.ModelSerializer):
     """User model serializer."""
+
+    profile = ProfileModelSerializer()
 
     class Meta:
         """Meta options."""
         model = User
         fields = [
-            'username', 'first_name',
+            'id', 'username', 'first_name',
             'last_name', 'email',
-            'phone_number',
-            'verified', 'role'
+            'profile', 'phone_number',
+            'verified'
         ]
 
         read_only_fields = [
-            'username', 'first_name',
-            'last_name', 'email',
-            'profile', 'verified'
+            'id', 'username', 'email',
+            'role', 'verified'
         ]
+
+    def update(self, instance, validated_data):
+        """Update user and profile data."""
+        profile_data = validated_data.pop('profile')
+        serializer = ProfileModelSerializer(instance.profile, data=profile_data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return super(UserModelSerializer, self).update(instance, validated_data)
 
 
 class UserSignUpSerializer(serializers.Serializer):
