@@ -5,12 +5,30 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
 # Models
-from apps.users.models import User
+from apps.users.models import Profile, User
+
+
+class ProfileInline(admin.StackedInline):
+    """Profile in-line admin for users."""
+
+    model = Profile
+    readonly_fields = [
+        'photo', 'cover_photo',
+        'about', 'birth_date',
+        'sport', 'country',
+        'public', 'web_site',
+        'social_link'
+    ]
+
+    can_delete = False
+    verbose_name_plural = 'profile'
 
 
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
     """User model admin."""
+
+    inlines = [ProfileInline]
 
     list_display = [
         'pk',
