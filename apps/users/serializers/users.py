@@ -44,10 +44,12 @@ class UserModelSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         """Update user and profile data."""
-        profile_data = validated_data.pop('profile')
-        serializer = ProfileModelSerializer(instance.profile, data=profile_data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
+        profile_data = validated_data.get('profile')
+        if profile_data:
+            validated_data.pop('profile')
+            serializer = ProfileModelSerializer(instance.profile, data=profile_data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
         return super(UserModelSerializer, self).update(instance, validated_data)
 
 
