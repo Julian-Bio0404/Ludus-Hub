@@ -270,3 +270,41 @@ class TokenUpdateEmailSerializers(serializers.Serializer):
         user_data = UserModelSerializer(user).data
         send_update_email.delay(user_data=user_data, email=data['new_email'])
         return data
+
+
+class UpdateEmailSerializers(serializers.Serializer):
+    """Update Email serializer."""
+
+    new_email = serializers.EmailField()
+    token = serializers.CharField()
+
+    password = serializers.CharField(
+        required=True, min_length=8, max_length=64)
+
+    def validate(self, data):
+        """Verify token is valid."""
+        try:
+            payload = jwt.decode(
+                data['token'], settings.SECRET_KEY, algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise serializers.ValidationError('Verification link has expired.')
+        except jwt.PyJWTError:
+            raise serializers.ValidationError('Invalid token')
+
+        if payload['type'] != 'update_email':
+            raise serializers.ValidationError('Invalid token')
+
+        user = User.objects.get(username=payload['user'])
+        if not user.check_password(data['password']):
+            raise serializers.ValidationError('Wrong password.')
+
+        self.context['user'] = user
+        self.context['payload'] = payload
+        return data
+
+    def save(self):
+        """Update user's email."""
+        payload = self.context['payload']
+        user = self.context['user']
+        user.email = payload['email']
+        user.save()

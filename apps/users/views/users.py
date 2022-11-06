@@ -3,16 +3,17 @@
 # Django REST framework
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.response import Response
 
 # Permissions
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
 
 # Serializers
 from apps.users.serializers import (AccountVerificationSerializer,
                                     RestorePasswordSerializer,
-                                    TokenUpdateEmailSerializers,
                                     TokenRestorePasswordSerializer,
+                                    TokenUpdateEmailSerializers,
+                                    UpdateEmailSerializers,
                                     UpdatePasswordSerializer,
                                     UserLoginSerializer, UserModelSerializer,
                                     UserSignUpSerializer)
@@ -99,4 +100,13 @@ class UserViewSet(viewsets.GenericViewSet):
         serializer.is_valid(raise_exception=True)
         data = {
             'message': 'We have sent an email for you to update email address.'}
+        return Response(data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['post'])
+    def update_email(self, request, *args, **kwargs):
+        """Update user's email address."""
+        serializer = UpdateEmailSerializers(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        data = {'message': 'Updated email address'}
         return Response(data, status=status.HTTP_200_OK)
