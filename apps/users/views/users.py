@@ -11,6 +11,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 # Serializers
 from apps.users.serializers import (AccountVerificationSerializer,
                                     RestorePasswordSerializer,
+                                    TokenUpdateEmailSerializers,
                                     TokenRestorePasswordSerializer,
                                     UpdatePasswordSerializer,
                                     UserLoginSerializer, UserModelSerializer,
@@ -88,4 +89,14 @@ class UserViewSet(viewsets.GenericViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         data = {'message': 'Your password has been reset.'}
+        return Response(data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'])
+    def token_update_email(self, request, *args, **kwargs):
+        """Create a token for update email address."""
+        serializer = TokenUpdateEmailSerializers(
+            data=request.data, context={'user': request.user})
+        serializer.is_valid(raise_exception=True)
+        data = {
+            'message': 'We have sent an email for you to update email address.'}
         return Response(data, status=status.HTTP_200_OK)

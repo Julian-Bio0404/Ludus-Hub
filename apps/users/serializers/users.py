@@ -17,7 +17,7 @@ from rest_framework.validators import UniqueValidator
 from apps.users.models import User
 
 # Tasks
-from taskapp.tasks import send_restore_password_email
+from taskapp.tasks import send_restore_password_email, send_update_email
 
 from .profiles import ProfileModelSerializer
 
@@ -244,3 +244,29 @@ class RestorePasswordSerializer(serializers.Serializer):
         user = self.context['user']
         user.set_password(self.validated_data['password'])
         user.save()
+
+
+class TokenUpdateEmailSerializers(serializers.Serializer):
+    """Token Update Email serializer."""
+
+    new_email = serializers.EmailField()
+
+    password = serializers.CharField(
+        required=True, min_length=8, max_length=64)
+
+    def validate_new_email(self, data):
+        """Check new email address."""
+        user = User.objects.filter(email=data)
+        if user.exists():
+            raise serializers.ValidationError(
+                'There is already a user with this email.')
+        return data
+
+    def validate(self, data):
+        """Check password."""
+        user = self.context['user']
+        if not user.check_password(data['password']):
+            raise serializers.ValidationError('Wrong password.')
+        user_data = UserModelSerializer(user).data
+        send_update_email.delay(user_data=user_data, email=data['new_email'])
+        return data
