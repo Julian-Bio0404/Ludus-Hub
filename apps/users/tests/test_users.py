@@ -222,3 +222,78 @@ class TestUserCase:
         user.refresh_from_db(fields=['password'])
         assert athlete_client.user.password != user.password
         assert response.status_code == status.HTTP_200_OK
+
+    def test_update_email_token(self, api_client):
+        user = UserFactory(password='admin123')
+        api_client.user = user
+        api_client.force_authenticate(user=user)
+
+        body = {
+            'new_email': 'test2@gmail.com',
+            'password': 'admin123'
+        }
+        url = reverse(
+            'users:users-token-update-email', args=[user.username])
+        response = api_client.post(url, body)
+        print(response.content)
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_update_user_email(self, athlete_client):
+
+        user = athlete_client.user
+
+        # Invalid token type
+        token = token_generation(
+            username=user.username, type='email_confirmation', email='update@email.com')
+        body = {
+            'new_email': 'update@email.com',
+            'token': token,
+            'password': 'admin123'
+        }
+        url = reverse('users:users-update-email')
+        response = athlete_client.post(url, body)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+        # With invalid token
+        body = {
+            'new_email': 'update@email.com',
+            'token': 'xxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+            'password': 'admin123'
+        }
+        response = athlete_client.post(url, body)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+        # New Email != token email
+        token = token_generation(
+            username=user.username, type='update_email', email='update@email.com')
+        body = {
+            'new_email': 'updatlkjle2@email.com',
+            'token': token,
+            'password': 'admin123'
+        }
+        response = athlete_client.post(url, body)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+        # Wrong password
+        token = token_generation(
+            username=user.username, type='update_email', email='update@email.com')
+        body = {
+            'new_email': 'update@email.com',
+            'token': token,
+            'password': 'xxxxxxxxxxxxx'
+        }
+        response = athlete_client.post(url, body)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+        # Success
+        token = token_generation(
+            username=user.username, type='update_email', email='update@email.com')
+        body = {
+            'new_email': 'update@email.com',
+            'token': token,
+            'password': 'admin123'
+        }
+        response = athlete_client.post(url, body)
+        db_user = User.objects.get(username=user.username)
+        assert user.email != db_user.email
+        assert response.status_code == status.HTTP_200_OK

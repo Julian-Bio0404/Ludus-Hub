@@ -11,7 +11,7 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 
 
-def token_generation(username: str, type: str) -> str:
+def token_generation(username: str, type: str, email=None) -> str:
     """Create JWT token."""
     exp_date = timezone.now() + timedelta(days=2)
     payload = {
@@ -19,6 +19,8 @@ def token_generation(username: str, type: str) -> str:
         'exp': int(exp_date.timestamp()),
         'type': type
     }
+    if type in ['update_email']:
+        payload['email'] = email
     return jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
 
 

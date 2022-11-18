@@ -40,15 +40,17 @@ def send_restore_password_email(self, user_data: dict) -> bool:
 
 
 @app.task(bind=True)
-def send_update_email(self, user_data: dict, email: str) -> bool:
+def send_update_email(self, user_data: dict) -> bool:
     """Send update email link to given user."""
     username = user_data['username']
-    token = token_generation(username, type='update_email', email=email)
+    email = user_data['new_email']
+    token = token_generation(
+        username, type='update_email', email=email)
     email_data = {
         'subject': f"Hi @{username}! Update your email",
         'template': 'users/update_email.html',
         'context': {'token': token, 'user': username},
-        'email': user_data['email']
+        'email': email
     }
     send_email(**email_data)
     return True

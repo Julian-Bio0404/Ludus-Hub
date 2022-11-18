@@ -1,6 +1,6 @@
 """Production settings."""
 
-from .base import *
+from .base import INSTALLED_APPS, env
 
 DEBUG = False
 

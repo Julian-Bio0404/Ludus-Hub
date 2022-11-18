@@ -267,8 +267,11 @@ class TokenUpdateEmailSerializers(serializers.Serializer):
         user = self.context['user']
         if not user.check_password(data['password']):
             raise serializers.ValidationError('Wrong password.')
-        user_data = UserModelSerializer(user).data
-        send_update_email.delay(user_data=user_data, email=data['new_email'])
+        data = {
+            'username': user.username,
+            'new_email': data['new_email']
+        }
+        send_update_email.delay(user_data=data)
         return data
 
 
@@ -283,6 +286,7 @@ class UpdateEmailSerializers(serializers.Serializer):
 
     def validate(self, data):
         """Verify token is valid."""
+        # Check token
         try:
             payload = jwt.decode(
                 data['token'], settings.SECRET_KEY, algorithms=['HS256'])
@@ -294,9 +298,14 @@ class UpdateEmailSerializers(serializers.Serializer):
         if payload['type'] != 'update_email':
             raise serializers.ValidationError('Invalid token')
 
+        # Check password
         user = User.objects.get(username=payload['user'])
         if not user.check_password(data['password']):
             raise serializers.ValidationError('Wrong password.')
+
+        # Check email
+        if data['new_email'] != payload['email']:
+            raise serializers.ValidationError('This is not you new email address.')
 
         self.context['user'] = user
         self.context['payload'] = payload

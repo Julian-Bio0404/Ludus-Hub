@@ -3,8 +3,6 @@
 # Django REST framework
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-
-# Permissions
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
@@ -28,7 +26,7 @@ class UserViewSet(viewsets.GenericViewSet):
 
     def get_permissions(self):
         """Assign permissions based on action."""
-        if self.action == 'update_psswd':
+        if self.action in ['update_psswd', 'token_update_email']:
             permissions = [IsAuthenticated]
         else:
             permissions = [AllowAny]
