@@ -1,3 +1,45 @@
+"""Sports models admin."""
+
+# Django
 from django.contrib import admin
 
-# Register your models here.
+# Models
+from apps.sports.models import Club, Member
+
+
+class MemberInline(admin.TabularInline):
+    """Club member inline admin."""
+
+    model = Member
+    suit_form_inlines_hide_original = True
+    readonly_fields = ['user', 'active']
+    extra = 0
+    can_delete = False
+    verbose_name_plural = 'members'
+
+
+@admin.register(Club)
+class ClubAdmin(admin.ModelAdmin):
+    """Club model admin."""
+
+    list_display = [
+        'name', 'slug',
+        'description', 'city',
+        'trainer', 'web_site',
+        'created', 'updated'
+    ]
+
+    search_fields = [
+        'name', 'slug', 'city'
+    ]
+
+    inlines = [MemberInline]
+
+    def has_add_permission(self, request, obj=None) -> bool:
+        return False
+
+    def has_delete_permission(self, request, obj=None) -> bool:
+        return False
+
+    def has_change_permission(self, request, obj=None) -> bool:
+        return False
