@@ -84,7 +84,7 @@ class UserSignUpSerializer(serializers.Serializer):
     # Role
     def role_validator(role):
         """Verify the role."""
-        if role not in User.Role.values.keys():
+        if role not in User.Roles.values.keys():
             raise serializers.ValidationError('Role not allowed.')
 
     role = serializers.CharField(
