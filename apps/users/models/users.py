@@ -18,7 +18,7 @@ class User(SportfyModel, AbstractUser):
     Extend from Django's Abstract User and add some extra fields.
     """
 
-    class Role(DjangoChoices):
+    class Roles(DjangoChoices):
         """User role choices."""
         athlete = ChoiceItem('athlete', 'Athlete')
         trainer = ChoiceItem('trainer', 'Trainer')
@@ -38,7 +38,7 @@ class User(SportfyModel, AbstractUser):
         default=False, help_text='Set to true when the user have verified its email add')
 
     role = models.CharField(
-        help_text='role of user.', max_length=16, choices=Role.choices)
+        help_text='role of user.', max_length=16, choices=Roles.choices)
 
     # Username configuration
     USERNAME_FIELD = 'email'

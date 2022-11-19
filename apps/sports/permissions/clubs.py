@@ -2,6 +2,8 @@
 
 # Django REST Framework
 from rest_framework.permissions import BasePermission
+
+# Models
 from apps.users.models import User
 
 
