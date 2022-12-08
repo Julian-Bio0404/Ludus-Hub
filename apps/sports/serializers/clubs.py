@@ -23,3 +23,8 @@ class ClubModelSerializer(serializers.ModelSerializer):
         ]
 
         read_only_fields = ['trainer', 'slug']
+
+    def create(self, data):
+        """Create a Club."""
+        trainer = self.context['trainer']
+        return Club.objects.create(**data, trainer=trainer)
