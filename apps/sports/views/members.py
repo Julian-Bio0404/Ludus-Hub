@@ -36,7 +36,7 @@ class MemberViewSet(viewsets.ModelViewSet):
 
     def dispatch(self, request, *args, **kwargs):
         """Verify that the club exists."""
-        self.club = get_object_or_404(Club, slugname=kwargs['slugname'])
+        self.club = get_object_or_404(Club, slug=kwargs['slug'])
         return super(MemberViewSet, self).dispatch(request, *args, **kwargs)
 
     def get_queryset(self):

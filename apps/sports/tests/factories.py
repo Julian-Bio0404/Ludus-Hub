@@ -5,7 +5,7 @@ from factory.django import DjangoModelFactory
 from factory import SubFactory, Faker, post_generation
 
 # Models
-from apps.sports.models import Club
+from apps.sports.models import Club, Member
 
 # Factories
 from apps.users.tests.factories import UserFactory
@@ -16,7 +16,7 @@ class ClubFactory(DjangoModelFactory):
 
     trainer = SubFactory(UserFactory)
     name = Faker('company')
-    slug = Faker('name')
+    slug = Faker('slug')
 
     @post_generation
     def members(self, create: bool, extracted: Sequence[Any], **kwargs):
@@ -28,3 +28,13 @@ class ClubFactory(DjangoModelFactory):
     class Meta:
         model = Club
         django_get_or_create = ['slug']
+
+
+class MemberFactory(DjangoModelFactory):
+    """Member model factory."""
+
+    user = SubFactory(UserFactory)
+    club = SubFactory(ClubFactory)
+
+    class Meta:
+        model = Member
