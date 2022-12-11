@@ -4,7 +4,7 @@
 from django.contrib import admin
 
 # Models
-from apps.sports.models import Club, Member
+from apps.sports.models import Club, Member, Invitation
 
 
 class MemberInline(admin.TabularInline):
@@ -16,6 +16,23 @@ class MemberInline(admin.TabularInline):
     extra = 0
     can_delete = False
     verbose_name_plural = 'members'
+
+    def has_add_permission(self, request, obj=None) -> bool:
+        return False
+
+
+class InvitationInline(admin.TabularInline):
+    """Club invitation inline admin."""
+
+    model = Invitation
+    suit_form_inlines_hide_original = True
+    readonly_fields = ['sent_by', 'invited', 'used']
+    extra = 0
+    can_delete = False
+    verbose_name_plural = 'invitations'
+
+    def has_add_permission(self, request, obj=None) -> bool:
+        return False
 
 
 @admin.register(Club)
@@ -33,7 +50,7 @@ class ClubAdmin(admin.ModelAdmin):
         'name', 'slug', 'city'
     ]
 
-    inlines = [MemberInline]
+    inlines = [MemberInline, InvitationInline]
 
     def has_add_permission(self, request, obj=None) -> bool:
         return False
