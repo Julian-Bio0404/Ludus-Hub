@@ -55,9 +55,9 @@ class InvitationViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         """Assign permissions based on action."""
         permissions = [IsAuthenticated]
-        if self.action in ['create']:
+        if self.action in ['create', 'list']:
             permissions.append(IsClubAdmin)
-        elif self.action in ['destroy']:
+        elif self.action in ['destroy', 'retrieve']:
             permissions.append(IsSelfMemberOrClubOwner)
         elif self.action in ['update', 'partial_update']:
             permissions.append(IsInvited)
