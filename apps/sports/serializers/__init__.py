@@ -1,2 +1,3 @@
 from .clubs import ClubModelSerializer  # NOQA
-from .members import MemberModelSerializer  # NOQA
+from .members import (CreateInvitationSerializer,  # NOQA
+                      InvitationModelSerializer, MemberModelSerializer)
