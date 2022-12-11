@@ -21,3 +21,19 @@ class Member(SportfyModel):
     def __str__(self):
         """Return username and club."""
         return f'@{self.user.username} at {self.club.slug}'
+
+
+class Invitation(SportfyModel):
+    """Invitation model."""
+
+    sent_by = models.ForeignKey('users.User', on_delete=models.CASCADE)
+
+    invited = models.ForeignKey(
+        'users.User', on_delete=models.CASCADE, related_name='invited')
+
+    club = models.ForeignKey('sports.Club', on_delete=models.CASCADE)
+    used = models.BooleanField(default=False)
+
+    def __str__(self):
+        """Return club and athlete."""
+        return f'{self.sent_by} from {self.club}: {self.invited}'
