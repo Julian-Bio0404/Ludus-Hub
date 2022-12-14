@@ -1,8 +1,9 @@
 """Members views."""
 
 # Django REST framework
-from rest_framework import viewsets
+from rest_framework import status, viewsets
 from rest_framework.generics import get_object_or_404
+from rest_framework.response import Response
 
 # Permissions
 from rest_framework.permissions import IsAuthenticated
@@ -51,6 +52,7 @@ class InvitationViewSet(viewsets.ModelViewSet):
     Invitation view set.
     Create, retrieve, update and delete club invitations.
     """
+    serializer_class = InvitationModelSerializer
 
     def get_permissions(self):
         """Assign permissions based on action."""
@@ -71,15 +73,18 @@ class InvitationViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return Invitation.objects.filter(club=self.club)
 
-    def get_serializer_class(self):
-        """Return a serializer based on action."""
-        if self.action == 'create':
-            return CreateInvitationSerializer
-        return InvitationModelSerializer
-
     def get_serializer_context(self):
         """Add admin club and club to serializer context."""
         context = super(InvitationViewSet, self).get_serializer_context()
         context['sent_by'] = self.request.user
         context['club'] = self.club
         return context
+
+    def create(self, request, *args, **kwargs):
+        data = request.data
+        serializer = CreateInvitationSerializer(
+            data=data, context={'sent_by': self.request.user, 'club': self.club})
+        serializer.is_valid(raise_exception=True)
+        invitation = serializer.save()
+        data = InvitationModelSerializer(invitation).data
+        return Response(data=data, status=status.HTTP_201_CREATED)
