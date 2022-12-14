@@ -1,11 +1,12 @@
 """Club factories."""
 
 from typing import Any, Sequence
+
+from factory import Faker, SubFactory, post_generation
 from factory.django import DjangoModelFactory
-from factory import SubFactory, Faker, post_generation
 
 # Models
-from apps.sports.models import Club, Member
+from apps.sports.models import Club, Invitation, Member
 
 # Factories
 from apps.users.tests.factories import UserFactory
@@ -38,3 +39,14 @@ class MemberFactory(DjangoModelFactory):
 
     class Meta:
         model = Member
+
+
+class InvitationFactory(DjangoModelFactory):
+    """Invitation model factory."""
+
+    sent_by = SubFactory(UserFactory)
+    invited = SubFactory(UserFactory)
+    club = SubFactory(ClubFactory)
+
+    class Meta:
+        model = Invitation
