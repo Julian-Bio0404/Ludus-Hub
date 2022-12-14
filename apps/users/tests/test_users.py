@@ -27,7 +27,7 @@ class TestUserCase:
             'first_name': 'First User',
             'last_name': 'First User',
             'phone_number': '+99 9999999999',
-            'role': User.Role.athlete,
+            'role': User.Roles.athlete,
             'password': 'aipdsaapU',
             'password_confirmation': 'aipdsaapU'
         }
@@ -106,7 +106,7 @@ class TestUserCase:
             'first_name': 'test00',
             'last_name': 'test00',
             'phone_number': '+99 9999999999',
-            'role': User.Role.athlete,
+            'role': User.Roles.athlete,
             'password': 'nKSAJBBCJW_',
             'password_confirmation': 'nKSAJBBCJW_'
         }

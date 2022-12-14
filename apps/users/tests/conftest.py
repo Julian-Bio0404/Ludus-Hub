@@ -19,7 +19,7 @@ def athlete_user() -> User:
 @pytest.fixture(scope='function')
 def trainer_user() -> User:
     """Create fake trainer user."""
-    return UserFactory(role=User.Role.trainer)
+    return UserFactory(role=User.Roles.trainer)
 
 
 @pytest.fixture(scope='function')

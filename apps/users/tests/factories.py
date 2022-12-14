@@ -14,7 +14,7 @@ class UserFactory(DjangoModelFactory):
     email = Faker('email')
     first_name = Faker('name')
     last_name = Faker('name')
-    role = User.Role.athlete
+    role = User.Roles.athlete
 
     @post_generation
     def password(self, create: bool, extracted: Sequence[Any], **kwargs):
@@ -23,4 +23,4 @@ class UserFactory(DjangoModelFactory):
 
     class Meta:
         model = User
-        django_get_or_create = ['username']
+        django_get_or_create = ['username', 'email']
