@@ -22,7 +22,7 @@ class ClubModelSerializer(serializers.ModelSerializer):
             'trainer', 'web_site'
         ]
 
-        read_only_fields = ['trainer', 'slug']
+        read_only_fields = ['trainer']
 
     def create(self, data):
         """Create a Club."""
