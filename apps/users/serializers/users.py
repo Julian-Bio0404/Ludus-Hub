@@ -16,6 +16,9 @@ from rest_framework.validators import UniqueValidator
 # Models
 from apps.users.models import User
 
+# Utils
+from apps.utils.users import token_is_expired
+
 # Tasks
 from taskapp.tasks import send_restore_password_email, send_update_email
 
@@ -128,7 +131,10 @@ class UserLoginSerializer(serializers.Serializer):
 
     def create(self, data):
         """Generate or retrieve token."""
-        token, _ = Token.objects.get_or_create(user=self.context['user'])
+        token, created = Token.objects.get_or_create(user=self.context['user'])
+        if not created and token_is_expired(token):
+            token.delete()
+            token = Token.objects.create(user=self.context['user'])
         return self.context['user'], token.key
 
 

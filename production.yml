@@ -20,6 +20,9 @@ services:
 
   redis:
     image: redis:7.0.5-alpine
+  
+  redis-channels:
+    image: redis:7.0.5-alpine
 
   django: &django
     build:

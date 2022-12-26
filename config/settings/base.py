@@ -21,6 +21,8 @@ ALLOWED_HOSTS = []
 # Application definition
 
 DJANGO_APPS = [
+    'daphne',
+    'channels',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -32,12 +34,13 @@ DJANGO_APPS = [
 THIRD_PARTY_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
-    'django_filters',
+    'django_filters'
 ]
 
 LOCAL_APPS = [
     'apps.users',
-    'apps.sports'
+    'apps.sports',
+    'apps.chat'
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -74,8 +77,8 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'config.wsgi.application'
-
+# WSGI_APPLICATION = 'config.wsgi.application'
+ASGI_APPLICATION = 'config.asgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
@@ -148,9 +151,23 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 20,
 }
 
+# Token auth expiration in days
+TOKEN_EXPIRE_IN = 1
+
 # Celery
 CELERY_BROKER_URL = env('REDIS_URL')
 CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 
 CELERY_TASK_ALWAYS_EAGER = True
 CELERY_TASK_EAGER_PROPAGATES = True
+
+
+# Channels
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [('redis-channels', 6379)]
+        },
+    },
+}

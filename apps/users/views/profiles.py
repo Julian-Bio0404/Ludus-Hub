@@ -3,12 +3,12 @@
 # Django REST Framework
 from rest_framework import mixins, viewsets
 
+# Models
+from apps.users.models import User
+
 # Permissions
 from rest_framework.permissions import IsAuthenticated
 from apps.users.permissions import IsProfileOwner
-
-# Models
-from apps.users.models import User
 
 # Serializers
 from apps.users.serializers import UserModelSerializer
