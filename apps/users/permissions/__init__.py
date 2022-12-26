@@ -1,1 +1,1 @@
-from .profiles import IsProfileOwner # noqa
+from .profiles import IsProfileOwner  # NOQA

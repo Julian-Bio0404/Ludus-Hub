@@ -151,6 +151,9 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 20,
 }
 
+# Token auth expiration in days
+TOKEN_EXPIRE_IN = 1
+
 # Celery
 CELERY_BROKER_URL = env('REDIS_URL')
 CELERY_RESULT_BACKEND = CELERY_BROKER_URL
