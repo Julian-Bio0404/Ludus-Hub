@@ -3,20 +3,20 @@
 import json
 
 # Channels
-from channels.generic.websocket import AsyncJsonWebsocketConsumer
 from channels.exceptions import StopConsumer
+from channels.generic.websocket import AsyncJsonWebsocketConsumer
 
 # Permissions
-from apps.chat.permissions import IsWebsocketAuthenticated
+from apps.chat.permissions import IsWebSocketAuthenticated
 
-# Tasks
+# Utils
 from apps.utils.chat import create_message, get_messages
 
 
 class ChatConsumer(AsyncJsonWebsocketConsumer):
     """Chat consumer."""
 
-    permission_classes = [IsWebsocketAuthenticated]
+    permission_classes = [IsWebSocketAuthenticated]
 
     def get_permissions(self):
         return [p() for p in self.permission_classes]
@@ -69,10 +69,11 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         and send message to WebSocket.
         """
         message = content['message']
-        user = self.scope['user']
-        await create_message(
-            username=user.username, room_name=self.room_group_name, text=message)
-        await self.send(text_data=json.dumps({'message': message}))
+        if message:
+            user = self.scope['user']
+            await create_message(
+                username=user.username, room_name=self.room_group_name, text=message)
+            await self.send(text_data=json.dumps({'message': message}))
 
     async def get_messages(self, content):
         """Get old messages."""

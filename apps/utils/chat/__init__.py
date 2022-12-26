@@ -1,1 +1,1 @@
-from .messages import create_message, get_messages # NOQA
+from .messages import create_message, get_messages  # NOQA

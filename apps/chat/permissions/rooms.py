@@ -1,3 +1,5 @@
+"""Chat Permissions."""
+
 
 class WebsocketBasePermission:
     """
@@ -5,7 +7,7 @@ class WebsocketBasePermission:
     classes should inherit.
     """
 
-    def has_permission(self, scope: dict):
+    def has_permission(self, scope: dict) -> bool:
         """
         Return `True` if permission is granted,
         `False` otherwise.
@@ -13,9 +15,9 @@ class WebsocketBasePermission:
         return True
 
 
-class IsWebsocketAuthenticated(WebsocketBasePermission):
+class IsWebSocketAuthenticated(WebsocketBasePermission):
     """Allow access only to user authenticated to websockets."""
 
-    def has_permission(self, scope: dict):
+    def has_permission(self, scope: dict) -> bool:
         user = scope.get('user')
         return bool(user and user.is_authenticated)

@@ -1,1 +1,1 @@
-from .rooms import IsWebsocketAuthenticated  # NOQA
+from .rooms import IsWebSocketAuthenticated  # NOQA
