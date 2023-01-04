@@ -1,4 +1,4 @@
-version: "3"
+version: "3.8"
 
 volumes:
   local_postgres_data: {}
@@ -22,14 +22,14 @@ services:
       - "5432:5432"
 
   redis:
-    image: redis:7.0.5-alpine
+    image: redis:7.0.7-alpine
     deploy:
       resources:
         limits:
-          memory: 300M
+          memory: 200M
   
   redis-channels:
-    image: redis:7.0.5-alpine
+    image: redis:7.0.7-alpine
     deploy:
       resources:
         limits:
