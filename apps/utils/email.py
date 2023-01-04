@@ -24,7 +24,7 @@ def token_generation(username: str, type: str, email=None) -> str:
     return jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
 
 
-def send_email(subject: str, template: tuple, context: dict, email: str):
+def send_email(subject: str, template: tuple, context: dict, email: str) -> None:
     """Send a email to user email."""
     from_email = 'Sportfy <sportfy.com>'
     content = render_to_string(template, context)

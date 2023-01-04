@@ -46,5 +46,5 @@ class Profile(SportfyModel):
     social_link = models.URLField(
         help_text='social media', max_length=200, blank=True)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.user.username

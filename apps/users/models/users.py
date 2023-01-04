@@ -48,6 +48,6 @@ class User(SportfyModel, AbstractUser):
         """Return username."""
         return self.username
 
-    def get_short_name(self):
+    def get_short_name(self) -> str:
         """Return username."""
         return self.username
