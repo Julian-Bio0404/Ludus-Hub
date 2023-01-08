@@ -18,6 +18,9 @@ class Member(SportfyModel):
     club = models.ForeignKey('sports.Club', on_delete=models.CASCADE)
     active = models.BooleanField(default=False)
 
+    def all_assistances(self) -> int:
+        return self.club.assistance_set.filter(user=self.user).count()
+
     def __str__(self) -> str:
         """Return username and club."""
         return f'@{self.user.username} at {self.club.slug}'

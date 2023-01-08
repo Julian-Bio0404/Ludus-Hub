@@ -17,15 +17,19 @@ class MemberModelSerializer(serializers.ModelSerializer):
 
     user = UserModelSerializer(read_only=True)
     joined_at = serializers.DateTimeField(source='created', read_only=True)
+    assistances = serializers.IntegerField(source='all_assistances')
 
     class Meta:
         model = Member
         fields = [
             'user', 'active',
-            'joined_at'
+            'joined_at', 'assistances'
         ]
 
-        read_only_fields = ['user', 'joined_at']
+        read_only_fields = [
+            'user', 'joined_at',
+            'assistances'
+        ]
 
 
 class InvitationModelSerializer(serializers.ModelSerializer):

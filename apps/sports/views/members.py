@@ -4,6 +4,7 @@ from datetime import date
 
 # Django REST framework
 from rest_framework import mixins, status, viewsets
+from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 
@@ -50,6 +51,15 @@ class MemberViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Return club members."""
         return Member.objects.filter(club=self.club).select_related('user')
+
+    @action(detail=True)
+    def assistances(self, request, *args, **kwargs):
+        member = self.get_object().user
+        dates = Assistance.objects.filter(
+            club=self.club, user=member).values_list('created', flat=True)
+        dates = [date.strftime('%d-%m-%Y, %H:%M:%S') for date in dates]
+        data = {'assistances': dates}
+        return Response(data=data, status=status.HTTP_200_OK)
 
 
 class InvitationViewSet(viewsets.ModelViewSet):
@@ -130,6 +140,6 @@ class AssistanceViewSet(mixins.ListModelMixin,
     def list(self, request, *args, **kwargs):
         """List assistance of a club on current day."""
         today = date.today()
-        assistances = Assistance.objects.filter(created__gte=today)
+        assistances = Assistance.objects.filter(club=self.club, created__gte=today)
         data = AssistanceModelSerializer(assistances, many=True).data
         return Response(data=data, status=status.HTTP_200_OK)
