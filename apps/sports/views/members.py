@@ -1,19 +1,24 @@
 """Members views."""
 
+from datetime import date
+
 # Django REST framework
-from rest_framework import status, viewsets
+from rest_framework import mixins, status, viewsets
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 
 # Permissions
 from rest_framework.permissions import IsAuthenticated
-from apps.sports.permissions import IsClubAdmin, IsSelfMemberOrClubOwner, IsInvited
+from apps.sports.permissions import (IsClubAdmin, IsInvited,
+                                     IsSelfMemberOrClubOwner)
 
 # Models
-from apps.sports.models import Club, Member, Invitation
+from apps.sports.models import Assistance, Club, Invitation, Member
 
 # Serializers
-from apps.sports.serializers import (CreateInvitationSerializer,
+from apps.sports.serializers import (AssistanceModelSerializer,
+                                     CreateAssistanceSerializer,
+                                     CreateInvitationSerializer,
                                      InvitationModelSerializer,
                                      MemberModelSerializer)
 
@@ -88,3 +93,43 @@ class InvitationViewSet(viewsets.ModelViewSet):
         invitation = serializer.save()
         data = InvitationModelSerializer(invitation).data
         return Response(data=data, status=status.HTTP_201_CREATED)
+
+
+class AssistanceViewSet(mixins.ListModelMixin,
+                        mixins.CreateModelMixin,
+                        viewsets.GenericViewSet):
+    """
+    Asistance viewset.
+    Handle bulk create and list asistances by club.
+    """
+
+    def get_permissions(self):
+        """Assign permissions based on action."""
+        permissions = [IsAuthenticated]
+        if self.action == 'create':
+            permissions.append(IsClubAdmin)
+        elif self.action == 'list':
+            permissions.append(IsSelfMemberOrClubOwner)
+        return [p() for p in permissions]
+
+    def dispatch(self, request, *args, **kwargs):
+        """Verify that the club exists."""
+        self.club = get_object_or_404(Club, slug=kwargs['slug'])
+        return super(AssistanceViewSet, self).dispatch(request, *args, **kwargs)
+
+    def create(self, request, *args, **kwargs):
+        """Create assistances for each member of a club."""
+        data = request.data
+        serializer = CreateAssistanceSerializer(
+            data=data, context={'club': self.club})
+        serializer.is_valid(raise_exception=True)
+        assistances = serializer.save()
+        data = AssistanceModelSerializer(assistances, many=True).data
+        return Response(data=data, status=status.HTTP_201_CREATED)
+
+    def list(self, request, *args, **kwargs):
+        """List assistance of a club on current day."""
+        today = date.today()
+        assistances = Assistance.objects.filter(created__gte=today)
+        data = AssistanceModelSerializer(assistances, many=True).data
+        return Response(data=data, status=status.HTTP_200_OK)

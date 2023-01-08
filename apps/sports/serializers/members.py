@@ -105,11 +105,12 @@ class CreateAssistanceSerializer(serializers.Serializer):
         """Search members by club."""
         club = self.context['club']
         members = data['members']
-        members = club.members.filter(user__username__in=members, active=True)
+        members = club.member_set.filter(
+            user__username__in=members, active=True).select_related('user')
         if not members:
             raise serializers.ValidationError(
                 'There are no existing members for this club.')
-        self.context['members'] = members
+        self.context['members'] = [member.user for member in members]
         return data
 
     def create(self, data):
