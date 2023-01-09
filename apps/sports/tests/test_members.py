@@ -1,6 +1,8 @@
 """Members tests."""
 
+from datetime import datetime, timedelta
 import json
+
 import pytest
 
 # Django
@@ -13,7 +15,9 @@ from rest_framework import status
 from apps.sports.models import Invitation, Member
 
 # Factories
-from apps.sports.tests.factories import ClubFactory, InvitationFactory, MemberFactory
+from apps.sports.tests.factories import (AssistanceFactory, ClubFactory,
+                                         InvitationFactory, MemberFactory)
+
 from apps.users.tests.factories import UserFactory
 
 pytestmark = pytest.mark.django_db
@@ -215,3 +219,55 @@ class TestInvitationCase:
         invitation_db = Invitation.objects.filter(invited=invited)
         assert invitation_db.exists() is False
         assert response.status_code == status.HTTP_204_NO_CONTENT
+
+
+class TestAssistanceCase:
+
+    def test_create_asssitances(self, trainer_client, athlete_client):
+        club = ClubFactory(trainer=trainer_client.user)
+        members = MemberFactory.create_batch(size=2, active=True, club=club)
+
+        # other members and inactive members
+        MemberFactory.create_batch(size=2, active=True)
+        MemberFactory.create_batch(size=2, active=True, club=club)
+
+        url = reverse('sports:assistances-list', args=[club.slug])
+        body = {'members': [member.user.username for member in members]}
+
+        response = trainer_client.post(url, body)
+        content = json.loads(response.content)
+
+        # Check that only create assistance by active club members
+        assert response.status_code == status.HTTP_201_CREATED
+        assert len(content[0]) == 2
+
+        # Check with other user
+        response = athlete_client.post(url, body)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_list_asssitances(self, trainer_client, athlete_client):
+        club = ClubFactory(trainer=trainer_client.user)
+        MemberFactory(active=True, club=club, user=athlete_client.user)
+        assistance1 = AssistanceFactory(user=athlete_client.user, club=club)
+        AssistanceFactory(user=athlete_client.user, club=club)
+
+        date = datetime.now() - timedelta(days=1)
+        assistance1.created = date
+        assistance1.save()
+
+        url = reverse('sports:assistances-list', args=[club.slug])
+        response = trainer_client.get(url)
+        content = json.loads(response.content)
+
+        # Check that only list assitance of current day
+        assert response.status_code == status.HTTP_200_OK
+        assert content['count'] == 1
+
+        member = athlete_client.user
+        url = reverse('sports:members-assistances', args=[club.slug, member.username])
+        response = athlete_client.get(url)
+        content = json.loads(response.content)
+
+        # Check that list all assistance of member
+        assert response.status_code == status.HTTP_200_OK
+        assert len(content['assistances']) == 2

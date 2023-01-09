@@ -113,6 +113,12 @@ class AssistanceViewSet(mixins.ListModelMixin,
     Handle bulk create and list asistances by club.
     """
 
+    serializer_class = AssistanceModelSerializer
+
+    def get_queryset(self):
+        today = date.today()
+        return Assistance.objects.filter(club=self.club, created__gte=today)
+
     def get_permissions(self):
         """Assign permissions based on action."""
         permissions = [IsAuthenticated]
@@ -136,10 +142,3 @@ class AssistanceViewSet(mixins.ListModelMixin,
         assistances = serializer.save()
         data = AssistanceModelSerializer(assistances, many=True).data
         return Response(data=data, status=status.HTTP_201_CREATED)
-
-    def list(self, request, *args, **kwargs):
-        """List assistance of a club on current day."""
-        today = date.today()
-        assistances = Assistance.objects.filter(club=self.club, created__gte=today)
-        data = AssistanceModelSerializer(assistances, many=True).data
-        return Response(data=data, status=status.HTTP_200_OK)
