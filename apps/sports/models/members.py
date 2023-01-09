@@ -4,7 +4,7 @@
 from django.db import models
 
 # Utils
-from apps.utils.models import SportfyModel
+from apps.utils.models import SportfyModel, BaseSportfyModel
 
 
 class Member(SportfyModel):
@@ -18,7 +18,10 @@ class Member(SportfyModel):
     club = models.ForeignKey('sports.Club', on_delete=models.CASCADE)
     active = models.BooleanField(default=False)
 
-    def __str__(self):
+    def all_assistances(self) -> int:
+        return self.club.assistance_set.filter(user=self.user).count()
+
+    def __str__(self) -> str:
         """Return username and club."""
         return f'@{self.user.username} at {self.club.slug}'
 
@@ -34,6 +37,17 @@ class Invitation(SportfyModel):
     club = models.ForeignKey('sports.Club', on_delete=models.CASCADE)
     used = models.BooleanField(default=False)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Return club and athlete."""
         return f'{self.sent_by} from {self.club}: {self.invited}'
+
+
+class Assistance(BaseSportfyModel):
+    """Assistance model."""
+
+    user = models.ForeignKey('users.User', on_delete=models.CASCADE)
+    club = models.ForeignKey('sports.Club', on_delete=models.CASCADE)
+
+    def __str__(self) -> str:
+        """Return club and athlete."""
+        return f'{self.user.username} at: {self.created}'

@@ -4,7 +4,7 @@
 from rest_framework import serializers
 
 # Models
-from apps.sports.models import Member, Invitation
+from apps.sports.models import Member, Invitation, Assistance
 from apps.users.models import User
 
 # Serializers
@@ -17,15 +17,19 @@ class MemberModelSerializer(serializers.ModelSerializer):
 
     user = UserModelSerializer(read_only=True)
     joined_at = serializers.DateTimeField(source='created', read_only=True)
+    assistances = serializers.IntegerField(source='all_assistances')
 
     class Meta:
         model = Member
         fields = [
             'user', 'active',
-            'joined_at'
+            'joined_at', 'assistances'
         ]
 
-        read_only_fields = ['user', 'joined_at']
+        read_only_fields = [
+            'user', 'joined_at',
+            'assistances'
+        ]
 
 
 class InvitationModelSerializer(serializers.ModelSerializer):
@@ -83,3 +87,42 @@ class CreateInvitationSerializer(serializers.Serializer):
         # Create a inactive Membership
         Member.objects.create(user=invited, club=club)
         return invitation
+
+
+class AssistanceModelSerializer(serializers.ModelSerializer):
+    """Assistance model serializer."""
+
+    user = UserModelSerializer(read_only=True)
+
+    class Meta:
+        model = Assistance
+        fields = ['user', 'created']
+        read_only_fields = ['user', 'created']
+
+
+class CreateAssistanceSerializer(serializers.Serializer):
+    """Create assistance serializer."""
+
+    members = serializers.ListField(child=serializers.CharField())
+
+    def validate(self, data):
+        """Search members by club."""
+        club = self.context['club']
+        members = data['members']
+        members = club.member_set.filter(
+            user__username__in=members, active=True).select_related('user')
+        if not members:
+            raise serializers.ValidationError(
+                'There are no existing members for this club.')
+        self.context['members'] = [member.user for member in members]
+        return data
+
+    def create(self, data):
+        """Assistances Bulk create."""
+        query = [
+            Assistance(
+                user=member,
+                club=self.context['club']
+            ) for member in self.context['members']
+        ]
+        return Assistance.objects.bulk_create(query)

@@ -6,7 +6,7 @@ from factory import Faker, SubFactory, post_generation
 from factory.django import DjangoModelFactory
 
 # Models
-from apps.sports.models import Club, Invitation, Member
+from apps.sports.models import Assistance, Club, Invitation, Member
 
 # Factories
 from apps.users.tests.factories import UserFactory
@@ -50,3 +50,13 @@ class InvitationFactory(DjangoModelFactory):
 
     class Meta:
         model = Invitation
+
+
+class AssistanceFactory(DjangoModelFactory):
+    """Assistance model factory."""
+
+    user = SubFactory(UserFactory)
+    club = SubFactory(ClubFactory)
+
+    class Meta:
+        model = Assistance
