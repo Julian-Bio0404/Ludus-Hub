@@ -3,7 +3,7 @@
 set -o errexit
 set -o nounset
 
-
+cd web-1/
 celery flower \
     --app=taskapp \
     --broker="${CELERY_BROKER_URL}" \

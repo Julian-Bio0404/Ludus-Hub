@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 # Requirements are installed here to ensure they will be cached.
 RUN python -m pip install --upgrade pip
 
-COPY ./requirements /requirements
+COPY ./web-1/requirements /requirements
 RUN pip install -r /requirements/local.txt
 
 COPY ./compose/production/django/entrypoint /entrypoint
@@ -32,6 +32,6 @@ COPY ./compose/local/django/celery/worker/start /start-celeryworker
 RUN sed -i 's/\r//' /start-celeryworker
 RUN chmod +x /start-celeryworker
 
-WORKDIR /app
+WORKDIR /web-1
 
 ENTRYPOINT ["/entrypoint"]

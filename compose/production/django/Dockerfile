@@ -1,4 +1,4 @@
-FROM python:3.9
+FROM python:3.11.1
 
 ENV PYTHONUNBUFFERED 1
 
@@ -18,7 +18,7 @@ RUN addgroup -S django \
     && adduser -S -G django django
 
 # Requirements are installed here to ensure they will be cached.
-COPY ./requirements /requirements
+COPY ./web-1/requirements /requirements
 RUN pip install --no-cache-dir -r /requirements/production.txt \
     && rm -rf /requirements
 
@@ -37,12 +37,12 @@ RUN sed -i 's/\r//' /start-celeryworker
 RUN chmod +x /start-celeryworker
 RUN chown django /start-celeryworker
 
-COPY . /app
+COPY . /web-1
 
-RUN chown -R django /app
+RUN chown -R django /web-1
 
 USER django
 
-WORKDIR /app
+WORKDIR /web-1
 
 ENTRYPOINT ["/entrypoint"]
