@@ -20,9 +20,11 @@ services:
 
   redis:
     image: redis:7.0.7-alpine
+    restart: always
   
   redis-channels:
     image: redis:7.0.7-alpine
+    restart: always
 
   django: &django
     build:
@@ -58,3 +60,15 @@ services:
     ports:
       - "5555:5555"
     command: /start-flower
+    restart: always
+
+  fastapi:
+    build:
+      context: .
+      dockerfile: ./compose/production/fastapi/Dockerfile
+    volumes:
+      - .:/web-2
+    ports:
+      - "8001:8001"
+    command: /start
+    restart: always

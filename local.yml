@@ -47,7 +47,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 300M
+          memory: 200M
     ports:
       - "8000:8000"
     depends_on:
@@ -68,3 +68,17 @@ services:
       - redis
       - django
     command: /start-celeryworker
+
+  fastapi:
+    build:
+      context: .
+      dockerfile: ./compose/local/fastapi/Dockerfile
+    volumes:
+      - .:/web-2
+    deploy:
+      resources:
+        limits:
+          memory: 200M
+    ports:
+      - "8001:8001"
+    command: /start
