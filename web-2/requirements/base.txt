@@ -5,3 +5,4 @@ sqlalchemy==1.4.46
 python-multipart==0.0.5
 python-jose[cryptography]
 passlib[bcrypt]
+python-dotenv==0.21.0
