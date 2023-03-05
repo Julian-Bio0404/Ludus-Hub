@@ -1,6 +1,7 @@
 from settings import Base
 from sqlalchemy import Boolean, Column, ForeignKey, String
 from sqlalchemy.orm import relationship
+from .users import User
 
 
 class Club(Base):
@@ -19,8 +20,9 @@ class Member(Base):
 
     __tablename__ = 'sports_member'
 
+    id = Column(String, primary_key=True, index=True)
     user_id = Column(String, ForeignKey('users_user.id'))
-    user = relationship('User', back_populates='members')
+    user = relationship(User, back_populates='members')
     club_id = Column(String, ForeignKey('sports_club.id'))
     club = relationship('Club', back_populates='members')
     active = Column(Boolean)
