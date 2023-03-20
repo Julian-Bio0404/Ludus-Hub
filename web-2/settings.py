@@ -54,8 +54,3 @@ def get_db():
         yield db
     finally:
         db.close()
-
-
-def get_mongodb():
-    """Get session of mongo db."""
-    return mongo_client.mydatabase

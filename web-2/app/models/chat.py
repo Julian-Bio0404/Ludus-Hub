@@ -1,6 +1,4 @@
-from mongoengine import Document, ListField, ReferenceField, StringField
-
-from .users import User
+from mongoengine import Document, ListField, StringField
 
 
 class Room(Document):
@@ -8,12 +6,12 @@ class Room(Document):
 
     slug = StringField(required=True, unique=True)
     club = StringField(required=True)
-    receivers = ListField(ReferenceField(User))
+    receivers = ListField(StringField(required=True))
 
 
 class Message(Document):
     """Message mongo model."""
 
-    sender = ReferenceField(User, required=True)
-    room = ReferenceField(Room, required=True)
+    sender = StringField(required=True)
+    room = StringField(required=True)
     text = StringField(required=True)
