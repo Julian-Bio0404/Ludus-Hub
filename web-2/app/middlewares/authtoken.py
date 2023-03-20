@@ -1,10 +1,9 @@
 from app.models.users import Token
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import HTTPException
 from fastapi.responses import JSONResponse
 from settings import get_db
 from sqlalchemy.orm import Session
-
-app = FastAPI()
+from starlette.authentication import AuthCredentials, AuthenticationBackend
 
 
 def verify_token(key: str, db: Session) -> Token:
@@ -14,21 +13,23 @@ def verify_token(key: str, db: Session) -> Token:
     return token
 
 
-@app.middleware('http')
-async def auth_middleware(request: Request, call_next):
-    """Validate auth user."""
-    key = request.headers.get('Authorization')
-    if key:
+class AuthTokenBackend(AuthenticationBackend):
+    """Custom auth token backend."""
+
+    async def authenticate(self, conn):
+        """Check the token key."""
+        auth = conn.headers.get('authorization')
+        if not auth:
+            return
+
         try:
+            scheme, key = auth.split()
+            if scheme.lower() != 'token':
+                return
             db = get_db()
             token = verify_token(key, next(db))
             if not token:
                 return JSONResponse(content={'detail': 'Invalid token.'}, status_code=403)
         except HTTPException as e:
             return e
-    else:
-        return JSONResponse(content={'detail': 'Authentication credentials were not provided.'}, status_code=403)
-
-    request.state.user = token.user
-    response = await call_next(request)
-    return response
+        return AuthCredentials(['authenticated']), token.user

@@ -1,36 +1,52 @@
-from app.middlewares.authtoken import auth_middleware
+from app.middlewares.authtoken import AuthTokenBackend
 from app.queries import clubs
-from app.schemas.chat import MessageSchema
-from app.schemas.clubs import ClubSchema
-from fastapi import Depends, FastAPI, HTTPException
+from app.schemas.chat import (CreateMessageSchema, MessageSchema,
+                              ReadMessageSchema)
+from fastapi import Depends, HTTPException, Request
 from fastapi.encoders import jsonable_encoder
-from fastapi.middleware.cors import CORSMiddleware
 from settings import get_db, mongo_client
 from sqlalchemy.orm import Session
+from starlette.applications import Starlette
+from starlette.authentication import requires
+from starlette.middleware import Middleware
+from starlette.middleware.authentication import AuthenticationMiddleware
+from starlette.responses import JSONResponse
+from starlette.routing import Route
 
-app = FastAPI()
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
-app.middleware('http')(auth_middleware)
 
-
-@app.get('/club/{slug}', response_model=ClubSchema)
-def read_club(slug: str, db: Session = Depends(get_db)):
+@requires('authenticated')
+def read_club(slug: str, request: Request, db: Session = Depends(get_db)):
     club = clubs.get_club(db, slug=slug)
     if not club:
         raise HTTPException(status_code=404, detail='Club does not exists')
     return club
 
 
-@app.post('/send-message', response_model=MessageSchema, status_code=201)
-def send_message(message: MessageSchema):
+@requires('authenticated')
+def send_message(message: MessageSchema, request: Request):
     """Send a message."""
     data = jsonable_encoder(message)
     message = mongo_client.local.messages.insert_one(data)
     return message
 
 
-@app.get('/messages', response_model=list[MessageSchema])
-def get_messages():
+@requires('authenticated')
+def get_messages(request: Request):
     """Get all messages."""
-    messages = mongo_client.local.messages.find()
-    return [MessageSchema(**message) for message in messages]
+    user = request.user
+    messages = mongo_client.local.messages.find({'sender': user.username})
+    data = [dict(ReadMessageSchema(**message)) for message in messages]
+    return JSONResponse(content=data, status_code=200)
+
+
+middleware = [
+    Middleware(AuthenticationMiddleware, backend=AuthTokenBackend())
+]
+
+routes = [
+    Route('/club/{slug}', endpoint=read_club),
+    Route('/send-message', endpoint=send_message),
+    Route('/messages', endpoint=get_messages)
+]
+
+app = Starlette(routes=routes, middleware=middleware)
