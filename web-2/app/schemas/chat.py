@@ -31,6 +31,7 @@ class ReadMessageSchema(BaseModel):
     id: str | None
     sender: str | None
     text: str | None
+    date: str
 
     class Config:
         orm_mode = True

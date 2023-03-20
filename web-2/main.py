@@ -1,11 +1,10 @@
+from datetime import datetime
+
 from app.middlewares.authtoken import AuthTokenBackend
 from app.queries import clubs
-from app.schemas.chat import (CreateMessageSchema, MessageSchema,
-                              ReadMessageSchema)
-from fastapi import Depends, HTTPException, Request
-from fastapi.encoders import jsonable_encoder
+from app.schemas.chat import ReadMessageSchema
+from fastapi import Request
 from settings import get_db, mongo_client
-from sqlalchemy.orm import Session
 from starlette.applications import Starlette
 from starlette.authentication import requires
 from starlette.middleware import Middleware
@@ -15,26 +14,48 @@ from starlette.routing import Route
 
 
 @requires('authenticated')
-def read_club(slug: str, request: Request, db: Session = Depends(get_db)):
-    club = clubs.get_club(db, slug=slug)
-    if not club:
-        raise HTTPException(status_code=404, detail='Club does not exists')
-    return club
-
-
-@requires('authenticated')
-def send_message(message: MessageSchema, request: Request):
+async def send_message(request: Request):
     """Send a message."""
-    data = jsonable_encoder(message)
-    message = mongo_client.local.messages.insert_one(data)
-    return message
+    user = request.user
+    club_slug = request.path_params['slug']
+    db = get_db()
+    club = clubs.get_club(next(db), slug=club_slug)
+    if not club:
+        content = {'detail': 'Club does not exist'}
+        return JSONResponse(content=content, status_code=403)
+
+    members = [i.user.username for i in club.members]
+    if user.username not in members:
+        content = {'detail': 'Do you not have permission for this action'}
+        return JSONResponse(content=content, status_code=404)
+
+    now = datetime.now()
+    data = await request.json()
+    data['sender'] = user.username
+    data['date'] = now.strftime('%d-%m-%Y, %H:%M')
+    data['room'] = club_slug
+    mongo_client.local.messages.insert_one(data)
+    content = {'message': 'Message sent!'}
+    return JSONResponse(content=content, status_code=201)
 
 
 @requires('authenticated')
 def get_messages(request: Request):
     """Get all messages."""
     user = request.user
-    messages = mongo_client.local.messages.find({'sender': user.username})
+    club_slug = request.path_params['slug']
+    db = get_db()
+    club = clubs.get_club(next(db), slug=club_slug)
+    if not club:
+        content = {'detail': 'Club does not exist'}
+        return JSONResponse(content=content, status_code=404)
+
+    members = [i.user.username for i in club.members]
+    if user.username not in members:
+        content = {'detail': 'Do you not have permission for this action'}
+        return JSONResponse(content=content, status_code=403)
+
+    messages = mongo_client.local.messages.find({'room': club_slug})
     data = [dict(ReadMessageSchema(**message)) for message in messages]
     return JSONResponse(content=data, status_code=200)
 
@@ -44,9 +65,8 @@ middleware = [
 ]
 
 routes = [
-    Route('/club/{slug}', endpoint=read_club),
-    Route('/send-message', endpoint=send_message),
-    Route('/messages', endpoint=get_messages)
+    Route('/club/{slug:str}/send-message', endpoint=send_message, methods=['POST']),
+    Route('/club/{slug:str}/messages', endpoint=get_messages)
 ]
 
 app = Starlette(routes=routes, middleware=middleware)
