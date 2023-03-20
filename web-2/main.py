@@ -56,7 +56,7 @@ def get_messages(request: Request):
         return JSONResponse(content=content, status_code=403)
 
     messages = mongo_client.local.messages.find({'room': club_slug})
-    data = [dict(ReadMessageSchema(**message)) for message in messages]
+    data = [dict(ReadMessageSchema(**{**message, '_id': str(message['_id'])})) for message in messages]
     return JSONResponse(content=data, status_code=200)
 
 
