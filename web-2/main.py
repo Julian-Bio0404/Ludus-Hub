@@ -1,12 +1,16 @@
+from app.middlewares.authtoken import auth_middleware
 from app.queries import clubs
 from app.schemas.chat import MessageSchema
 from app.schemas.clubs import ClubSchema
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.encoders import jsonable_encoder
+from fastapi.middleware.cors import CORSMiddleware
 from settings import get_db, mongo_client
 from sqlalchemy.orm import Session
 
 app = FastAPI()
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+app.middleware('http')(auth_middleware)
 
 
 @app.get('/club/{slug}', response_model=ClubSchema)

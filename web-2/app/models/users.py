@@ -11,6 +11,7 @@ class User(Base):
     id = Column(String, primary_key=True, index=True)
     username = Column(String, unique=True)
     members = relationship('Member', back_populates='user')
+    token = relationship('Token', back_populates='user')
 
 
 class Token(Base):
@@ -18,7 +19,6 @@ class Token(Base):
 
     __tablename__ = 'authtoken_token'
 
-    id = Column(String, primary_key=True, index=True)
     key = Column(String, primary_key=True, unique=True)
     user_id = Column(String, ForeignKey('users_user.id'))
     user = relationship('User', back_populates='token')
