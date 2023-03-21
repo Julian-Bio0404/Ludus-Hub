@@ -1,16 +1,17 @@
 from datetime import datetime
 
-from app.middlewares.authtoken import AuthTokenBackend
+from app.middlewares.authtoken import WebSocketAuthToken
 from app.queries import clubs
 from app.schemas.chat import ReadMessageSchema
-from fastapi import Request
+from fastapi import FastAPI, Request, WebSocket, WebSocketException
+from fastapi.responses import HTMLResponse
 from settings import get_db, mongo_client
-from starlette.applications import Starlette
 from starlette.authentication import requires
-from starlette.middleware import Middleware
 from starlette.middleware.authentication import AuthenticationMiddleware
 from starlette.responses import JSONResponse
-from starlette.routing import Route
+
+app = FastAPI()
+app.add_middleware(AuthenticationMiddleware, backend=WebSocketAuthToken())
 
 
 @requires('authenticated')
@@ -60,13 +61,60 @@ def get_messages(request: Request):
     return JSONResponse(content=data, status_code=200)
 
 
-middleware = [
-    Middleware(AuthenticationMiddleware, backend=AuthTokenBackend())
-]
+html = """
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Chat</title>
+    </head>
+    <body>
+        <h1>WebSocket Chat</h1>
+        <form action="" onsubmit="sendMessage(event)">
+            <label>Club Slug: <input type="text" id="clubSlug" autocomplete="off" value="foo"/></label>
+            <label>Token: <input type="text" id="token" autocomplete="off" value="some-key-token"/></label>
+            <button onclick="connect(event)">Connect</button>
+            <hr>
+            <label>Message: <input type="text" id="messageText" autocomplete="off"/></label>
+            <button>Send</button>
+        </form>
+        <ul id='messages'>
+        </ul>
+        <script>
+        var ws = null;
+            function connect(event) {
+                var clubSlug = document.getElementById("clubSlug")
+                var token = document.getElementById("token")
+                ws = new WebSocket("ws://localhost:8001/clubs/" + clubSlug.value + "/ws?token=" + token.value);
+                ws.onmessage = function(event) {
+                    var messages = document.getElementById('messages')
+                    var message = document.createElement('li')
+                    var content = document.createTextNode(event.data)
+                    message.appendChild(content)
+                    messages.appendChild(message)
+                };
+                event.preventDefault()
+            }
+            function sendMessage(event) {
+                var input = document.getElementById("messageText")
+                ws.send(input.value)
+                input.value = ''
+                event.preventDefault()
+            }
+        </script>
+    </body>
+</html>
+"""
 
-routes = [
-    Route('/club/{slug:str}/send-message', endpoint=send_message, methods=['POST']),
-    Route('/club/{slug:str}/messages', endpoint=get_messages)
-]
 
-app = Starlette(routes=routes, middleware=middleware)
+@app.get('/')
+async def get():
+    return HTMLResponse(html)
+
+
+@app.websocket('/clubs/{slug}/ws')
+async def websocket_endpoint(websocket: WebSocket, slug: str):
+    user = websocket.scope.get('user')
+    await websocket.accept()
+    while True:
+        data = await websocket.receive_text()
+        await websocket.send_text(f"Message text was: {data}, for club: {slug}")
