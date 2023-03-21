@@ -3,62 +3,13 @@ from datetime import datetime
 from app.middlewares.authtoken import WebSocketAuthToken
 from app.queries import clubs
 from app.schemas.chat import ReadMessageSchema
-from fastapi import FastAPI, Request, WebSocket, WebSocketException
+from fastapi import FastAPI, WebSocket, WebSocketException, status
 from fastapi.responses import HTMLResponse
 from settings import get_db, mongo_client
-from starlette.authentication import requires
 from starlette.middleware.authentication import AuthenticationMiddleware
-from starlette.responses import JSONResponse
 
 app = FastAPI()
 app.add_middleware(AuthenticationMiddleware, backend=WebSocketAuthToken())
-
-
-@requires('authenticated')
-async def send_message(request: Request):
-    """Send a message."""
-    user = request.user
-    club_slug = request.path_params['slug']
-    db = get_db()
-    club = clubs.get_club(next(db), slug=club_slug)
-    if not club:
-        content = {'detail': 'Club does not exist'}
-        return JSONResponse(content=content, status_code=403)
-
-    members = [i.user.username for i in club.members]
-    if user.username not in members:
-        content = {'detail': 'Do you not have permission for this action'}
-        return JSONResponse(content=content, status_code=404)
-
-    now = datetime.now()
-    data = await request.json()
-    data['sender'] = user.username
-    data['date'] = now.strftime('%d-%m-%Y, %H:%M')
-    data['room'] = club_slug
-    mongo_client.local.messages.insert_one(data)
-    content = {'message': 'Message sent!'}
-    return JSONResponse(content=content, status_code=201)
-
-
-@requires('authenticated')
-def get_messages(request: Request):
-    """Get all messages."""
-    user = request.user
-    club_slug = request.path_params['slug']
-    db = get_db()
-    club = clubs.get_club(next(db), slug=club_slug)
-    if not club:
-        content = {'detail': 'Club does not exist'}
-        return JSONResponse(content=content, status_code=404)
-
-    members = [i.user.username for i in club.members]
-    if user.username not in members:
-        content = {'detail': 'Do you not have permission for this action'}
-        return JSONResponse(content=content, status_code=403)
-
-    messages = mongo_client.local.messages.find({'room': club_slug})
-    data = [dict(ReadMessageSchema(**{**message, '_id': str(message['_id'])})) for message in messages]
-    return JSONResponse(content=data, status_code=200)
 
 
 html = """
@@ -107,14 +58,46 @@ html = """
 
 
 @app.get('/')
-async def get():
+async def chat():
+    """Render chat template."""
     return HTMLResponse(html)
 
 
 @app.websocket('/clubs/{slug}/ws')
-async def websocket_endpoint(websocket: WebSocket, slug: str):
+async def club_messages(websocket: WebSocket, slug: str):
+    """Send or get messages to/of a club."""
     user = websocket.scope.get('user')
+    if not user:
+        raise WebSocketException(
+            code=status.WS_1008_POLICY_VIOLATION,
+            reason='You must provide the authentication credentials')
+
+    db = get_db()
+    club = clubs.get_club(next(db), slug=slug)
+    if not club:
+        raise WebSocketException(
+            code=status.WS_1014_BAD_GATEWAY,
+            reason='Club does not exist')
+
+    members = [i.user.username for i in club.members]
+    if user.username not in members:
+        raise WebSocketException(
+            code=status.WS_1014_BAD_GATEWAY,
+            reason='Do you not have permission for this action')
+
     await websocket.accept()
     while True:
-        data = await websocket.receive_text()
-        await websocket.send_text(f"Message text was: {data}, for club: {slug}")
+        data = {}
+        now = datetime.now()
+        data['text'] = await websocket.receive_text()
+        data['sender'] = user.username
+        data['date'] = now.strftime('%d-%m-%Y, %H:%M')
+        data['room'] = slug
+        mongo_client.local.messages.insert_one(data)
+        messages = mongo_client.local.messages.find({'room': slug})
+        data = [
+            dict(
+                ReadMessageSchema(**{**message, '_id': str(message['_id'])})
+            ) for message in messages
+        ]
+        await websocket.send_json(data)
