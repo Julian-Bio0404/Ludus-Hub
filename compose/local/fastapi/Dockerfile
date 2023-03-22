@@ -17,21 +17,12 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 # Requirements are installed here to ensure they will be cached.
 RUN python -m pip install --upgrade pip
 
-COPY ./web-1/requirements /requirements
+COPY ./web-2/requirements /requirements
+
 RUN pip install -r /requirements/local.txt
 
-COPY ./compose/production/django/entrypoint /entrypoint
-RUN sed -i 's/\r//' /entrypoint
-RUN chmod +x /entrypoint
-
-COPY ./compose/local/django/start /start
+COPY ./compose/local/fastapi/start /start
 RUN sed -i 's/\r//' /start
 RUN chmod +x /start
 
-COPY ./compose/local/django/celery/worker/start /start-celeryworker
-RUN sed -i 's/\r//' /start-celeryworker
-RUN chmod +x /start-celeryworker
-
-WORKDIR /web-1
-
-ENTRYPOINT ["/entrypoint"]
+WORKDIR /web-2
