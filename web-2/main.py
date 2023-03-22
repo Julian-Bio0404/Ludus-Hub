@@ -20,22 +20,22 @@ html = """
     </head>
     <body>
         <h1>WebSocket Chat</h1>
-        <form action="" onsubmit="sendMessage(event)">
+        <form>
             <label>Club Slug: <input type="text" id="clubSlug" autocomplete="off" value="foo"/></label>
             <label>Token: <input type="text" id="token" autocomplete="off" value="some-key-token"/></label>
-            <button onclick="connect(event)">Connect</button>
+            <button type="button" onclick="connect()">Connect</button>
             <hr>
             <label>Message: <input type="text" id="messageText" autocomplete="off"/></label>
-            <button>Send</button>
+            <button type="button" onclick="sendMessage()">Send</button>
         </form>
         <ul id='messages'>
         </ul>
         <script>
-        var ws = null;
-            function connect(event) {
+            var ws = null;
+            function connect() {
                 var clubSlug = document.getElementById("clubSlug")
                 var token = document.getElementById("token")
-                ws = new WebSocket("ws://localhost:8001/clubs/" + clubSlug.value + "/ws?token=" + token.value);
+                ws = new WebSocket("ws://localhost:8001/chat/clubs/" + clubSlug.value + "/ws?token=" + token.value);
                 ws.onmessage = function(event) {
                     var messages = document.getElementById('messages')
                     var message = document.createElement('li')
@@ -43,13 +43,13 @@ html = """
                     message.appendChild(content)
                     messages.appendChild(message)
                 };
-                event.preventDefault()
             }
-            function sendMessage(event) {
+            function sendMessage() {
                 var input = document.getElementById("messageText")
-                ws.send(input.value)
-                input.value = ''
-                event.preventDefault()
+                if (ws != null && input.value != "") {
+                    ws.send(input.value)
+                    input.value = ''
+                }
             }
         </script>
     </body>
@@ -57,13 +57,13 @@ html = """
 """
 
 
-@app.get('/')
+@app.get('/chat')
 async def chat():
     """Render chat template."""
     return HTMLResponse(html)
 
 
-@app.websocket('/clubs/{slug}/ws')
+@app.websocket('/chat/clubs/{slug}/ws')
 async def club_messages(websocket: WebSocket, slug: str):
     """Send or get messages to/of a club."""
     user = websocket.scope.get('user')
@@ -86,6 +86,13 @@ async def club_messages(websocket: WebSocket, slug: str):
             reason='Do you not have permission for this action')
 
     await websocket.accept()
+    messages = mongo_client.local.messages.find({'room': slug})
+    data = [
+        dict(
+            ReadMessageSchema(**{**message, '_id': str(message['_id'])})
+        ) for message in messages
+    ]
+    await websocket.send_json(data)
     while True:
         data = {}
         now = datetime.now()
@@ -93,8 +100,8 @@ async def club_messages(websocket: WebSocket, slug: str):
         data['sender'] = user.username
         data['date'] = now.strftime('%d-%m-%Y, %H:%M')
         data['room'] = slug
-        mongo_client.local.messages.insert_one(data)
-        messages = mongo_client.local.messages.find({'room': slug})
+        id = mongo_client.local.messages.insert_one(data).inserted_id
+        messages = mongo_client.local.messages.find({'_id': id})
         data = [
             dict(
                 ReadMessageSchema(**{**message, '_id': str(message['_id'])})
