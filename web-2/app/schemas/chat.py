@@ -8,7 +8,6 @@ class ReadMessageSchema(BaseModel):
     sender: str | None
     text: str | None
     date: str
-    room: str
 
     class Config:
         orm_mode = True
