@@ -3,6 +3,7 @@ version: "3.8"
 volumes:
   local_postgres_data: {}
   local_postgres_data_backups: {}
+  local_mongo_data: {}
 
 services:
   postgres:
@@ -21,14 +22,15 @@ services:
     ports:
       - "5432:5432"
 
+  mongodb:
+    image: mongo:latest
+    volumes:
+      - local_mongo_data:/data/db
+    env_file: ./.env
+    ports:
+      - '27017:27017'
+
   redis:
-    image: redis:7.0.7-alpine
-    deploy:
-      resources:
-        limits:
-          memory: 200M
-  
-  redis-channels:
     image: redis:7.0.7-alpine
     deploy:
       resources:
@@ -41,13 +43,13 @@ services:
       dockerfile: ./compose/local/django/Dockerfile
     image: sportfy_local_django
     volumes:
-      - .:/app
+      - .:/web-1
     env_file:
       - ./.env
     deploy:
       resources:
         limits:
-          memory: 300M
+          memory: 200M
     ports:
       - "8000:8000"
     depends_on:
@@ -58,7 +60,7 @@ services:
     <<: *django
     image: sportfy_local_celeryworker
     volumes:
-      - .:/app
+      - .:/web-1
     deploy:
       resources:
         limits:
@@ -68,3 +70,17 @@ services:
       - redis
       - django
     command: /start-celeryworker
+
+  fastapi:
+    build:
+      context: .
+      dockerfile: ./compose/local/fastapi/Dockerfile
+    volumes:
+      - .:/web-2
+    deploy:
+      resources:
+        limits:
+          memory: 200M
+    ports:
+      - "8001:8001"
+    command: /start

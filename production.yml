@@ -3,6 +3,7 @@ version: "3.8"
 volumes:
   local_postgres_data: {}
   local_postgres_data_backups: {}
+  local_mongo_data: {}
 
 services:
   postgres:
@@ -18,11 +19,18 @@ services:
       - "5432:5432"
     restart: always
 
+  mongodb:
+    image: mongo:latest
+    volumes:
+      - local_mongo_data:/data/db
+    env_file: ./.env
+    ports:
+      - '27017:27017'
+    restart: always
+
   redis:
     image: redis:7.0.7-alpine
-  
-  redis-channels:
-    image: redis:7.0.7-alpine
+    restart: always
 
   django: &django
     build:
@@ -58,3 +66,15 @@ services:
     ports:
       - "5555:5555"
     command: /start-flower
+    restart: always
+
+  fastapi:
+    build:
+      context: .
+      dockerfile: ./compose/production/fastapi/Dockerfile
+    volumes:
+      - .:/web-2
+    ports:
+      - "8001:8001"
+    command: /start
+    restart: always
