@@ -31,10 +31,6 @@ services:
   redis:
     image: redis:7.0.7-alpine
     restart: always
-  
-  redis-channels:
-    image: redis:7.0.7-alpine
-    restart: always
 
   django: &django
     build:
