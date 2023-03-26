@@ -13,9 +13,11 @@ class Price(SportfyModel):
         cop = ChoiceItem('cop', 'COP')
         usd = ChoiceItem('usd', 'USD')
 
+    stripe_id = models.CharField(max_length=100, unique=True)
+
     currency = models.CharField(max_length=7, choices=Currency.choices)
 
-    value = models.DecimalField(max_digits=7, decimal_places=2)
+    amount = models.DecimalField(max_digits=7, decimal_places=2)
 
     def __str__(self) -> str:
-        return f'{self.value} - {self.currency}'
+        return f'{self.amount} - {self.currency}'
