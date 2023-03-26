@@ -16,7 +16,8 @@ def create_stripe_plan(self, id):
         'description': plan.description,
         'amount': plan.price.amount,
         'product': {
-            'name': plan.name
+            'name': plan.name,
+            'description': plan.description
         }
     }
     client.plan.create(**data)
