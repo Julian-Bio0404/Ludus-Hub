@@ -6,7 +6,7 @@ from taskapp.celery import app
 
 
 @app.task(bind=True)
-def create_stripe_plan(self, id):
+def create_stripe_plan(self, id) -> bool:
     """Create a stripe plan."""
     plan = Plan.objects.get(id=id)
     client = StripeClient()
@@ -23,3 +23,11 @@ def create_stripe_plan(self, id):
     plan.stripe_id = response['id']
     plan.save()
     return True
+
+
+@app.task(bind=True)
+def delete_stripe_plan(self, id) -> bool:
+    """Delete a stripe plan."""
+    client = StripeClient()
+    response = client.plan.delete(id)
+    return response['deleted']
