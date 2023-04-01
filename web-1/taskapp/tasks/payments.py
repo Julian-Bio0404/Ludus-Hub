@@ -10,15 +10,16 @@ def create_stripe_plan(self, id):
     """Create a stripe plan."""
     plan = Plan.objects.get(id=id)
     client = StripeClient()
+    amount, decimals = plan.price.dissociate_amount()
     data = {
-        'name': plan.name,
         'interval': plan.interval,
-        'description': plan.description,
-        'amount': plan.price.amount,
+        'amount': amount,
+        'currency': plan.price.currency,
         'product': {
-            'name': plan.name,
-            'description': plan.description
+            'name': plan.name
         }
     }
-    client.plan.create(**data)
+    response = client.plan.create(**data)
+    plan.stripe_id = response['id']
+    plan.save()
     return True
