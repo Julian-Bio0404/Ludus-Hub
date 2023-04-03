@@ -9,5 +9,6 @@ from django.urls import include, path
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include(('apps.users.urls', 'users'), namespace='users')),
-    path('', include(('apps.sports.urls', 'sports'), namespace='sports'))
+    path('', include(('apps.sports.urls', 'sports'), namespace='sports')),
+    path('', include(('apps.payments.urls', 'payments'), namespace='plans'))
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
