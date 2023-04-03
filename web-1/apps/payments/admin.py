@@ -6,7 +6,7 @@ from django.contrib import admin
 class PriceAdmin(admin.ModelAdmin):
     """Price model admin."""
 
-    list_display = ['stripe_id', 'currency', 'amount']
+    list_display = ['id', 'stripe_id', 'currency', 'amount']
     readonly_fields = ['stripe_id']
     search_fields = ['currency']
     list_filter = ['currency']
@@ -21,6 +21,6 @@ class PlanAdmin(admin.ModelAdmin):
         'interval', 'description',
         'price'
     ]
-    readonly_fields = ['stripe_id']
+    readonly_fields = ['stripe_id', 'product_id']
     search_fields = ['name']
     list_filter = ['interval']

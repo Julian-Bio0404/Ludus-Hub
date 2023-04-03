@@ -21,6 +21,10 @@ class StripePlan:
         plan = stripe.Plan.create(**kwargs)
         return plan
 
+    def update(self, id: str, **kwargs) -> stripe.Plan:
+        plan = stripe.Plan.modify(id, **kwargs)
+        return plan
+
     def delete(self, id: str) -> stripe.Plan:
         response = stripe.Plan.delete(id)
         return response

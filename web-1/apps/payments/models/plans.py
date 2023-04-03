@@ -15,6 +15,8 @@ class Plan(SportfyModel):
 
     stripe_id = models.CharField(max_length=100, unique=True)
 
+    product_id = models.CharField(max_length=100, unique=True, null=True)
+
     name = models.CharField(max_length=20, unique=True)
 
     interval = models.CharField(max_length=7, choices=Intervals.choices)
