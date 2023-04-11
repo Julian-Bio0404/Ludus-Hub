@@ -6,28 +6,30 @@ class StripeProduct:
     """Stripe Product object."""
 
     def create(self, **kwargs) -> stripe.Product:
-        product = stripe.Product.create(**kwargs)
-        return product
+        return stripe.Product.create(**kwargs)
 
     def delete(self, id: str) -> stripe.Product:
-        response = stripe.Product.delete(id)
-        return response
+        return stripe.Product.delete(id)
 
 
 class StripePlan:
     """Stripe Plan object."""
 
     def create(self, **kwargs) -> stripe.Plan:
-        plan = stripe.Plan.create(**kwargs)
-        return plan
+        return stripe.Plan.create(**kwargs)
 
     def update(self, id: str, **kwargs) -> stripe.Plan:
-        plan = stripe.Plan.modify(id, **kwargs)
-        return plan
+        return stripe.Plan.modify(id, **kwargs)
 
     def delete(self, id: str) -> stripe.Plan:
-        response = stripe.Plan.delete(id)
-        return response
+        return stripe.Plan.delete(id)
+
+
+class StripeCheckout:
+    """Stripe Checkout object."""
+
+    def create(self, **kwargs) -> stripe.checkout.Session:
+        return stripe.checkout.Session.create(**kwargs)
 
 
 class StripeClient:
@@ -35,6 +37,7 @@ class StripeClient:
 
     product = StripeProduct()
     plan = StripePlan()
+    checkout = StripeCheckout()
 
     def __init__(self) -> None:
         self.api_key = settings.STRIPE_API_KEY
