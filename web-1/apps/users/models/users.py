@@ -44,6 +44,11 @@ class User(SportfyModel, AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'first_name', 'last_name', 'role']
 
+    @property
+    def subscription(self):
+        has_subscription = hasattr(self, 'subscription')
+        return self.subscription if has_subscription else None
+
     def __str__(self):
         """Return username."""
         return self.username
