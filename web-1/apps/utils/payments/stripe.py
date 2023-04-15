@@ -32,12 +32,23 @@ class StripeCheckout:
         return stripe.checkout.Session.create(**kwargs)
 
 
+class StripeCustomer:
+    """Stripe customer objects."""
+
+    def create(self, **kwargs) -> stripe.Customer:
+        return stripe.Customer.create(**kwargs)
+
+    def get(self, id: str) -> stripe.Customer:
+        return stripe.Customer.retrieve(id)
+
+
 class StripeClient:
     """Stripe client."""
 
     product = StripeProduct()
     plan = StripePlan()
     checkout = StripeCheckout()
+    customer = StripeCustomer()
 
     def __init__(self) -> None:
         self.api_key = settings.STRIPE_API_KEY
