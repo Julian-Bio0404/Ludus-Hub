@@ -23,6 +23,8 @@ class User(SportfyModel, AbstractUser):
         athlete = ChoiceItem('athlete', 'Athlete')
         trainer = ChoiceItem('trainer', 'Trainer')
 
+    customer_id = models.CharField(max_length=100, blank=True)
+
     email = models.EmailField(
         'email address', unique=True,
         error_messages={'unique': 'A user with that email already exists.'})
@@ -43,6 +45,11 @@ class User(SportfyModel, AbstractUser):
     # Username configuration
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'first_name', 'last_name', 'role']
+
+    @property
+    def _subscription(self):
+        has_subscription = hasattr(self, 'subscription')
+        return self.subscription if has_subscription else None
 
     def __str__(self):
         """Return username."""

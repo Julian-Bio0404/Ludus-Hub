@@ -1,11 +1,8 @@
 """Users model admin."""
 
-# Django
+from apps.users.models import Profile, Subscription, User
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-
-# Models
-from apps.users.models import Profile, User
 
 
 class ProfileInline(admin.StackedInline):
@@ -24,14 +21,27 @@ class ProfileInline(admin.StackedInline):
     verbose_name_plural = 'profile'
 
 
+class SubscriptionInline(admin.StackedInline):
+    """Subscription in-line admin for users."""
+
+    model = Subscription
+    readonly_fields = [
+        'plan', 'active',
+        'created', 'updated'
+    ]
+
+    can_delete = False
+    verbose_name_plural = 'subscriptions'
+
+
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
     """User model admin."""
 
-    inlines = [ProfileInline]
+    inlines = [ProfileInline, SubscriptionInline]
 
     list_display = [
-        'pk',
+        'pk', 'customer_id',
         'first_name', 'last_name',
         'username', 'email',
         'phone_number', 'role',
@@ -53,6 +63,16 @@ class CustomUserAdmin(UserAdmin):
 
     def has_delete_permission(self, request, obj=None) -> bool:
         return False
+
+    def has_change_permission(self, request, obj=None) -> bool:
+        return False
+
+
+@admin.register(Subscription)
+class SubscriptionAdmin(admin.ModelAdmin):
+    """Subscription model admin."""
+
+    list_display = ['user', 'plan', 'active']
 
     def has_change_permission(self, request, obj=None) -> bool:
         return False

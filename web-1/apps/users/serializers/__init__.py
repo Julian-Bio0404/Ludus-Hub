@@ -1,6 +1,7 @@
 from .profiles import ProfileModelSerializer  # noqa
-from .users import (AccountVerificationSerializer, # noqa
-                    RestorePasswordSerializer, TokenRestorePasswordSerializer,
-                    TokenUpdateEmailSerializers, UpdateEmailSerializers,
-                    UpdatePasswordSerializer, UserLoginSerializer,
-                    UserModelSerializer, UserSignUpSerializer)
+from .subscriptions import CreateSubscriptionSerializer, SubscriptionModelSerializer  # noqa
+from .users import (AccountVerificationSerializer, RestorePasswordSerializer,  # noqa
+                    TokenRestorePasswordSerializer, TokenUpdateEmailSerializers,
+                    UpdateEmailSerializers, UpdatePasswordSerializer,
+                    UserLoginSerializer, UserModelSerializer,
+                    UserSignUpSerializer)

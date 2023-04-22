@@ -37,7 +37,8 @@ THIRD_PARTY_APPS = [
 
 LOCAL_APPS = [
     'apps.users',
-    'apps.sports'
+    'apps.sports',
+    'apps.payments'
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -157,3 +158,5 @@ CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 
 CELERY_TASK_ALWAYS_EAGER = True
 CELERY_TASK_EAGER_PROPAGATES = True
+
+STRIPE_API_KEY = env('STRIPE_API_KEY', default='')
