@@ -33,13 +33,23 @@ class StripeCheckout:
 
 
 class StripeCustomer:
-    """Stripe customer objects."""
+    """Stripe customer object."""
 
     def create(self, **kwargs) -> stripe.Customer:
         return stripe.Customer.create(**kwargs)
 
     def get(self, id: str) -> stripe.Customer:
         return stripe.Customer.retrieve(id)
+
+    def create_source(self, id, source):
+        return stripe.Customer.create_source(id, **source)
+
+
+class StripeSubscrption:
+    """Stripe Subscription object."""
+
+    def create(self, **kwargs) -> stripe.Subscription:
+        return stripe.Subscription.create(**kwargs)
 
 
 class StripeClient:
@@ -49,6 +59,7 @@ class StripeClient:
     plan = StripePlan()
     checkout = StripeCheckout()
     customer = StripeCustomer()
+    subscription = StripeSubscrption()
 
     def __init__(self) -> None:
         self.api_key = settings.STRIPE_API_KEY
