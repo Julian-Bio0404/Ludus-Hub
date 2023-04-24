@@ -1,16 +1,14 @@
 """Club serializers."""
 
-# Django REST Framework
+from apps.sports.models import Club, Sport
 from rest_framework import serializers
-
-# Models
-from apps.sports.models import Club
 
 
 class ClubModelSerializer(serializers.ModelSerializer):
     """Club model serializer."""
 
     trainer = serializers.StringRelatedField(read_only=True)
+    sport = serializers.CharField(required=False)
 
     class Meta:
         """Meta options."""
@@ -19,12 +17,27 @@ class ClubModelSerializer(serializers.ModelSerializer):
             'name', 'slug',
             'description', 'photo',
             'cover_photo', 'city',
-            'trainer', 'web_site'
+            'trainer', 'web_site',
+            'sport'
         ]
 
         read_only_fields = ['trainer']
 
+    def validate(self, data):
+        sport_name = data.get('sport')
+        if sport_name:
+            sport = Sport.objects.filter(name=sport_name).last()
+            data.pop('sport')
+            if sport:
+                self.context['sport'] = sport
+        return data
+
     def create(self, data):
         """Create a Club."""
-        trainer = self.context['trainer']
-        return Club.objects.create(**data, trainer=trainer)
+        data['trainer'] = self.context['trainer']
+        data['sport'] = self.context.get('sport')
+        return Club.objects.create(**data)
+
+    def update(self, instance, data):
+        data['sport'] = self.context.get('sport')
+        return super().update(instance, data)

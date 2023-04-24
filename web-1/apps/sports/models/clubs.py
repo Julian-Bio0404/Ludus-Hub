@@ -14,6 +14,12 @@ class Club(SportfyModel):
 
     slug = models.SlugField(unique=True, max_length=200)
 
+    sport = models.ForeignKey(
+        'sports.Sport',
+        on_delete=models.SET_NULL,
+        null=True, blank=True
+    )
+
     description = models.TextField(
         help_text='write about something', blank=True)
 
