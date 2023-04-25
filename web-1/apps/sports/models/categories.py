@@ -19,7 +19,7 @@ class Modality(SportModel):
 class Category(SportModel):
     """Category model."""
 
-    class Gender(DjangoChoices):
+    class Genders(DjangoChoices):
         """Gender Types."""
         male = ChoiceItem('male', 'Male')
         female = ChoiceItem('female', 'Female')
@@ -32,7 +32,7 @@ class Category(SportModel):
         slugify=custom_slugify
     )
 
-    gender = models.CharField(choices=Gender.choices, max_length=6)
+    gender = models.CharField(choices=Genders.choices, max_length=6)
 
     modality = models.ForeignKey(
         'sports.Modality',
