@@ -98,7 +98,7 @@ class CategoryFactory(DjangoModelFactory):
 
     name = Faker('company')
     modality = SubFactory(ModalityFactory)
-    genre = Category.Genders.female
+    gender = Category.Genders.female
 
     class Meta:
         model = Category
