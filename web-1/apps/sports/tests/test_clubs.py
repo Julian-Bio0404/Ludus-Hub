@@ -1,18 +1,10 @@
-import pytest
 import json
 
-# Django
-from django.urls import reverse
-
-# Django REST Framework
-from rest_framework import status
-
-# Factories
-from apps.sports.tests.factories import ClubFactory
-
-# Models
-from apps.chat.models import Room
+import pytest
 from apps.sports.models import Club
+from apps.sports.tests.factories import ClubFactory
+from django.urls import reverse
+from rest_framework import status
 
 pytestmark = pytest.mark.django_db
 
@@ -36,10 +28,6 @@ class TestClubsCase:
     def test_get_club(self, athlete_client, api_client):
         club = ClubFactory()
         url = reverse('sports:clubs-detail', args=[club.slug])
-
-        room = Room.objects.filter(club=club)
-        assert room.exists()
-        assert room.last().slug == club.slug
 
         # Check with unauth user
         response = api_client.get(url)

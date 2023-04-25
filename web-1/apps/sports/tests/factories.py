@@ -1,4 +1,4 @@
-"""Club factories."""
+"""Sport factories."""
 
 from typing import Any, Sequence
 

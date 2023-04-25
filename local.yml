@@ -43,7 +43,7 @@ services:
       dockerfile: ./compose/local/django/Dockerfile
     image: sportfy_local_django
     volumes:
-      - .:/web-1
+      - ./web-1:/web-1
     env_file:
       - ./.env
     deploy:
@@ -60,7 +60,9 @@ services:
     <<: *django
     image: sportfy_local_celeryworker
     volumes:
-      - .:/web-1
+      - ./web-1:/web-1
+    env_file:
+      - ./.env
     deploy:
       resources:
         limits:
@@ -76,7 +78,9 @@ services:
       context: .
       dockerfile: ./compose/local/fastapi/Dockerfile
     volumes:
-      - .:/web-2
+      - ./web-2:/web-2
+    env_file:
+      - ./.env
     deploy:
       resources:
         limits:

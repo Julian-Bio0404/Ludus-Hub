@@ -1,5 +1,5 @@
 .git
 .gitignore
-env/
+venv/
 __pycache__/
-*md
+README.md
