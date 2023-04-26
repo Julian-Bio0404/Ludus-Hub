@@ -3,5 +3,4 @@
 set -o errexit
 set -o nounset
 
-cd web-1
 celery -A taskapp worker -l INFO

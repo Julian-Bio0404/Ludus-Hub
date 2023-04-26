@@ -38,7 +38,7 @@ services:
       dockerfile: ./compose/production/django/Dockerfile
     image: sportfy_production_django
     volumes:
-      - .:/app
+      - ./web-1:/web-1
     env_file:
       - ./.env
     ports:
@@ -52,7 +52,9 @@ services:
     <<: *django
     image: sportfy_production_celeryworker
     volumes:
-        - .:/app
+      - ./web-1:/web-1
+    env_file:
+      - ./.env
     ports: []
     depends_on:
       - redis
@@ -63,6 +65,8 @@ services:
   flower:
     <<: *django
     image: sportfy_production_flower
+    env_file:
+      - ./.env
     ports:
       - "5555:5555"
     command: /start-flower
@@ -73,7 +77,9 @@ services:
       context: .
       dockerfile: ./compose/production/fastapi/Dockerfile
     volumes:
-      - .:/web-2
+      - ./web-2:/web-2
+    env_file:
+      - ./.env
     ports:
       - "8001:8001"
     command: /start

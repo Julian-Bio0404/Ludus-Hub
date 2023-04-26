@@ -1,15 +1,12 @@
-"""Club factories."""
+"""Sport factories."""
 
 from typing import Any, Sequence
 
+from apps.sports.models import (Assistance, Category, Club, Invitation, Member,
+                                Modality, Sport, Tag)
+from apps.users.tests.factories import UserFactory
 from factory import Faker, SubFactory, post_generation
 from factory.django import DjangoModelFactory
-
-# Models
-from apps.sports.models import Assistance, Club, Invitation, Member
-
-# Factories
-from apps.users.tests.factories import UserFactory
 
 
 class ClubFactory(DjangoModelFactory):
@@ -60,3 +57,59 @@ class AssistanceFactory(DjangoModelFactory):
 
     class Meta:
         model = Assistance
+
+
+class SportFactory(DjangoModelFactory):
+    """Sport model factory."""
+
+    name = Faker('company')
+
+    @post_generation
+    def categories(self, create: bool, extracted: Sequence[Any], **kwargs):
+        if not create:
+            return
+        if extracted:
+            self.categories.set(extracted)
+
+    @post_generation
+    def tags(self, create: bool, extracted: Sequence[Any], **kwargs):
+        if not create:
+            return
+        if extracted:
+            self.tags.set(extracted)
+
+    class Meta:
+        model = Sport
+        django_get_or_create = ['name']
+
+
+class ModalityFactory(DjangoModelFactory):
+    """Modality model factory."""
+
+    name = Faker('company')
+
+    class Meta:
+        model = Modality
+        django_get_or_create = ['name']
+
+
+class CategoryFactory(DjangoModelFactory):
+    """Category model factory."""
+
+    name = Faker('company')
+    modality = SubFactory(ModalityFactory)
+    gender = Category.Genders.female
+
+    class Meta:
+        model = Category
+        django_get_or_create = ['name']
+
+
+class TagFactory(DjangoModelFactory):
+    """Tag model factory."""
+
+    name = Faker('company')
+
+    class Meta:
+        model = Tag
+        django_get_or_create = ['name']

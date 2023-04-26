@@ -25,7 +25,7 @@ docker-compose -f local.yml up
 
 to create a superuser:
 ```bash
-docker-compose -f local.yml run --rm django python web-1/manage.py createsuperuser
+docker-compose -f local.yml run --rm django python manage.py createsuperuser
 ```
 
 to run the tests:
