@@ -1,5 +1,6 @@
 from .clubs import ClubModelSerializer  # NOQA
-from .members import (AssistanceModelSerializer,  # NOQA
-                      CreateAssistanceSerializer, CreateInvitationSerializer,
-                      InvitationModelSerializer, MemberModelSerializer)
+from .members import (AssistanceModelSerializer, CreateAssistanceSerializer,  # NOQA
+                      CreateInvitationSerializer, CreateTeamSerializer,
+                      InvitationModelSerializer, MemberModelSerializer,
+                      TeamModelSerializer)
 from .sports import SportModelSerializer  # NOQA
