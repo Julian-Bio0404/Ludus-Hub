@@ -1,10 +1,7 @@
 """Member models."""
 
-# Django
+from apps.utils.models import BaseSportfyModel, SportfyModel, SportModel
 from django.db import models
-
-# Utils
-from apps.utils.models import SportfyModel, BaseSportfyModel
 
 
 class Member(SportfyModel):
@@ -15,7 +12,9 @@ class Member(SportfyModel):
     """
 
     user = models.ForeignKey('users.User', on_delete=models.CASCADE)
+
     club = models.ForeignKey('sports.Club', on_delete=models.CASCADE)
+
     active = models.BooleanField(default=False)
 
     def all_assistances(self) -> int:
@@ -35,6 +34,7 @@ class Invitation(SportfyModel):
         'users.User', on_delete=models.CASCADE, related_name='invited')
 
     club = models.ForeignKey('sports.Club', on_delete=models.CASCADE)
+
     used = models.BooleanField(default=False)
 
     def __str__(self) -> str:
@@ -46,8 +46,27 @@ class Assistance(BaseSportfyModel):
     """Assistance model."""
 
     user = models.ForeignKey('users.User', on_delete=models.CASCADE)
+
     club = models.ForeignKey('sports.Club', on_delete=models.CASCADE)
 
     def __str__(self) -> str:
         """Return club and athlete."""
         return f'{self.user.username} at: {self.created}'
+
+
+class Team(SportModel):
+    """
+    Team model.
+    A team is a group of athletes of a club.
+    """
+
+    club = models.ForeignKey('sports.Club', on_delete=models.CASCADE)
+
+    users = models.ManyToManyField('users.User', blank=True)
+
+    category = models.ForeignKey(
+        'sports.Category', on_delete=models.SET_NULL, blank=True, null=True)
+
+    def __str__(self) -> str:
+        """Return team name."""
+        return self.name
