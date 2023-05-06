@@ -171,6 +171,7 @@ class CreateTeamSerializer(serializers.Serializer):
                     'Select only active members for this club.')
 
             self.context['users'] = [member.user for member in members]
+            data.pop('users')
 
         if not sport and category_id:
             raise serializers.ValidationError(
