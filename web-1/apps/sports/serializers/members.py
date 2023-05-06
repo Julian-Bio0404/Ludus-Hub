@@ -127,20 +127,20 @@ class CreateAssistanceSerializer(serializers.Serializer):
 class TeamModelSerializer(serializers.ModelSerializer):
     """Team model serializer."""
 
-    club = ClubModelSerializer(read_only=True)
     users = UserModelSerializer(many=True)
     category = serializers.SerializerMethodField()
 
     def get_category(self, obj):
-        return obj.category.name
+        category = obj.category
+        return category.name if category else None
 
     class Meta:
         model = Team
         fields = [
             'id', 'name',
-            'slug', 'users',
-            'club', 'cateory',
-            'update', 'created'
+            'slug', 'category',
+            'users', 'updated',
+            'created'
         ]
 
         read_only_fields = [
@@ -152,21 +152,25 @@ class CreateTeamSerializer(serializers.Serializer):
     """Create Team serializer."""
 
     name = serializers.CharField()
-    users = serializers.ListField(child=serializers.CharField())
+    users = serializers.ListField(child=serializers.CharField(), required=False)
+    category = serializers.UUIDField(required=False)
 
     def validate(self, data):
         """Check members by club and category."""
         club = self.context['club']
-        usernames = data['users']
-        category_id = data['category']
+        usernames = data.get('users')
+        category_id = data.get('category')
         sport = club.sport
 
-        members = club.member_set.filter(
-            user__username__in=usernames, active=True).select_related('user')
+        if usernames:
+            members = club.member_set.filter(
+                user__username__in=usernames, active=True).select_related('user')
 
-        if not members:
-            raise serializers.ValidationError(
-                'Select only active members for this club.')
+            if not members:
+                raise serializers.ValidationError(
+                    'Select only active members for this club.')
+
+            self.context['users'] = [member.user for member in members]
 
         if not sport and category_id:
             raise serializers.ValidationError(
@@ -179,15 +183,15 @@ class CreateTeamSerializer(serializers.Serializer):
                     'The category does not exist for this club.')
             self.context['category'] = category
 
-        self.context['users'] = [member.user for member in members]
         return data
 
     def create(self, data):
         """Create the team."""
         data['club'] = self.context['club']
         data['category'] = self.context.get('category')
-        users = self.context['users']
+        users = self.context.get('users')
         team = Team.objects.create(**data)
         # Set the users of the team
-        team.users.set(users)
+        if users:
+            team.users.set(users)
         return team

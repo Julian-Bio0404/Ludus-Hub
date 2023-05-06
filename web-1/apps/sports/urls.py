@@ -1,7 +1,8 @@
 """Sports URLs."""
 
 from apps.sports.views import (AssistanceViewSet, ClubViewSet,
-                               InvitationViewSet, MemberViewSet, SportViewSet)
+                               InvitationViewSet, MemberViewSet, SportViewSet,
+                               TeamViewset)
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
@@ -18,6 +19,9 @@ router.register(
 
 router.register(
     r'clubs/(?P<slug>[a-zA-Z0-9_-]+)/assistances', AssistanceViewSet, basename='assistances')
+
+router.register(
+    r'clubs/(?P<slug>[a-zA-Z0-9_-]+)/teams', TeamViewset, basename='teams')
 
 router.register(r'sports', SportViewSet, basename='sports')
 
