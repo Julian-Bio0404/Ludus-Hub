@@ -1,17 +1,18 @@
 """Members views."""
 
 from datetime import date
-
+from apps.users.serializers import UserModelSerializer
 from apps.sports.models import Assistance, Club, Invitation, Member, Team
 from apps.sports.permissions import (IsClubAdmin, IsInvited,
                                      IsSelfMemberOrClubOwner)
-from apps.sports.serializers import (AssistanceModelSerializer,
+from apps.sports.serializers import (AddTeamMemberSerializer,
+                                     AssistanceModelSerializer,
                                      CreateAssistanceSerializer,
                                      CreateInvitationSerializer,
                                      CreateTeamSerializer,
                                      InvitationModelSerializer,
                                      MemberModelSerializer,
-                                     TeamModelSerializer)
+                                     TeamModelSerializer, RemoveTeamMemberSerializer)
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
@@ -147,7 +148,6 @@ class TeamViewset(viewsets.ModelViewSet):
     """
 
     serializer_class = TeamModelSerializer
-    serializer_class = TeamModelSerializer
 
     def get_permissions(self):
         """Assign permissions based on action."""
@@ -159,6 +159,9 @@ class TeamViewset(viewsets.ModelViewSet):
     def dispatch(self, request, *args, **kwargs):
         """Verify that the club exists."""
         self.club = get_object_or_404(Club, slug=kwargs['slug'])
+        pk = kwargs.get('pk')
+        if pk:
+            self.team = get_object_or_404(Team, pk=pk)
         return super(TeamViewset, self).dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
@@ -172,3 +175,23 @@ class TeamViewset(viewsets.ModelViewSet):
         invitation = serializer.save()
         data = TeamModelSerializer(invitation).data
         return Response(data=data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['post'], url_path='add-member')
+    def add_member(self, request, *args, **kwargs):
+        data = request.data
+        serializer = AddTeamMemberSerializer(
+            data=data, context={'club': self.club, 'team': self.team})
+        serializer.is_valid(raise_exception=True)
+        users = serializer.save()
+        data = UserModelSerializer(users, many=True).data
+        return Response(data=data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='remove-member')
+    def remove_member(self, request, *args, **kwargs):
+        data = request.data
+        serializer = RemoveTeamMemberSerializer(
+            data=data, context={'club': self.club, 'team': self.team})
+        serializer.is_valid(raise_exception=True)
+        users = serializer.save()
+        data = UserModelSerializer(users, many=True).data
+        return Response(data=data, status=status.HTTP_200_OK)

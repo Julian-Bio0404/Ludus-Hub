@@ -124,6 +124,26 @@ class CreateAssistanceSerializer(serializers.Serializer):
         return Assistance.objects.bulk_create(query)
 
 
+class BaseTeamMemberSerializer(serializers.Serializer):
+    """Base Team Member serializer."""
+
+    users = serializers.ListField(child=serializers.CharField())
+
+    def validate_users(self, data):
+        """Check members by club."""
+        club = self.context['club']
+
+        members = club.member_set.filter(
+            user__username__in=data, active=True).select_related('user')
+
+        if not members:
+            raise serializers.ValidationError(
+                'Select only active members for this club.')
+
+        self.context['users'] = [member.user for member in members]
+        return data
+
+
 class TeamModelSerializer(serializers.ModelSerializer):
     """Team model serializer."""
 
@@ -194,5 +214,25 @@ class CreateTeamSerializer(serializers.Serializer):
         team = Team.objects.create(**data)
         # Set the users of the team
         if users:
-            team.users.set(users)
+            team.users.add(*users)
         return team
+
+
+class AddTeamMemberSerializer(BaseTeamMemberSerializer):
+    """Add Team Member serializer."""
+
+    def save(self, **data):
+        team = self.context['team']
+        users = self.context['users']
+        team.users.add(*users)
+        return users
+
+
+class RemoveTeamMemberSerializer(BaseTeamMemberSerializer):
+    """Remove Team Member serializer."""
+
+    def save(self, **data):
+        team = self.context['team']
+        users = self.context['users']
+        team.users.remove(*users)
+        return users
