@@ -152,7 +152,7 @@ class TeamViewset(viewsets.ModelViewSet):
     def get_permissions(self):
         """Assign permissions based on action."""
         permissions = [IsAuthenticated]
-        if self.action != 'list':
+        if self.action not in ['list', 'retrieve']:
             permissions.append(IsClubAdmin)
         return [p() for p in permissions]
 
