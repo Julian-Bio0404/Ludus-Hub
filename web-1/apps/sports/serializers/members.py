@@ -148,24 +148,49 @@ class TeamModelSerializer(serializers.ModelSerializer):
     """Team model serializer."""
 
     users = UserModelSerializer(many=True)
+    category_id = serializers.UUIDField(required=False)
     category = serializers.SerializerMethodField()
 
     def get_category(self, obj):
         category = obj.category
-        return category.name if category else None
+        return category.__str__() if category else None
+
+    def to_representation(self, instance):
+        """Exclude category_id from the serialized representation."""
+        response = super().to_representation(instance)
+        response.pop('category_id', None)
+        return response
+
+    def validate(self, data):
+        club = self.instance.club
+        sport = club.sport
+        category_id = data.get('category_id')
+        if sport and category_id:
+            category = sport.categories.filter(id=category_id).last()
+            if not category:
+                raise serializers.ValidationError(
+                    'The category does not exist for this club.')
+            self.context['category'] = category
+        return data
+
+    def update(self, instance, data):
+        category = self.context.get('category')
+        if category:
+            data['category'] = category
+            data.pop('category_id', None)
+        return super().update(instance, data)
 
     class Meta:
         model = Team
         fields = [
             'id', 'name',
             'slug', 'category',
+            'category_id',
             'users', 'updated',
             'created'
         ]
 
-        read_only_fields = [
-            'club', 'cateory'
-        ]
+        read_only_fields = ['club', 'slug', 'category']
 
 
 class CreateTeamSerializer(serializers.Serializer):
