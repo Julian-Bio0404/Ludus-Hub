@@ -1,9 +1,27 @@
 """Sports models admin."""
 
 from apps.sports.models import (Assistance, Category, Club, Invitation, Member,
-                                Modality, Sport, Tag)
-from django.contrib import admin
+                                Modality, Sport, Tag, Team)
 from django import forms
+from django.contrib import admin
+from django.urls import reverse
+from django.utils.safestring import mark_safe
+
+
+class TeamMemberInline(admin.TabularInline):
+    """Team member inline admin."""
+
+    model = Team.users.through
+    suit_form_inlines_hide_original = True
+    extra = 0
+    can_delete = False
+    verbose_name_plural = 'Team members'
+
+    def has_add_permission(self, request, obj=None) -> bool:
+        return False
+
+    def has_change_permission(self, request, obj=None) -> bool:
+        return False
 
 
 class MemberInline(admin.TabularInline):
@@ -15,6 +33,29 @@ class MemberInline(admin.TabularInline):
     extra = 0
     can_delete = False
     verbose_name_plural = 'members'
+
+    def has_add_permission(self, request, obj=None) -> bool:
+        return False
+
+
+class TeamInline(admin.TabularInline):
+    """Team inline admin."""
+
+    model = Team
+    suit_form_inlines_hide_original = True
+    readonly_fields = ['club', 'category', 'team_name']
+    extra = 0
+    can_delete = False
+    verbose_name_plural = 'teams'
+    fields = ['team_name', 'category']
+
+    def team_name(self, obj):
+        if obj.pk:
+            url = reverse('admin:sports_team_change', args=[obj.pk])
+            return mark_safe('<a href="{}">{}</a>'.format(url, obj.name))
+        return '-'
+    team_name.short_description = 'Name'
+    team_name.allow_tags = True
 
     def has_add_permission(self, request, obj=None) -> bool:
         return False
@@ -63,10 +104,36 @@ class ClubAdmin(admin.ModelAdmin):
         'name', 'slug', 'city'
     ]
 
-    inlines = [MemberInline, InvitationInline, AssistanceInline]
+    inlines = [
+        MemberInline,
+        TeamInline,
+        InvitationInline,
+        AssistanceInline
+    ]
 
     def has_add_permission(self, request, obj=None) -> bool:
         return False
+
+    def has_delete_permission(self, request, obj=None) -> bool:
+        return False
+
+    def has_change_permission(self, request, obj=None) -> bool:
+        return False
+
+
+@admin.register(Team)
+class TeamAdmin(admin.ModelAdmin):
+    """Team model admin."""
+
+    list_display = [
+        'name', 'slug',
+        'club', 'category',
+        'created', 'updated'
+    ]
+
+    search_fields = ['name', 'slug']
+
+    inlines = [TeamMemberInline]
 
     def has_delete_permission(self, request, obj=None) -> bool:
         return False

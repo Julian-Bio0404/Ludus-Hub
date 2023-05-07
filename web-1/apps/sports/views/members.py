@@ -1,27 +1,23 @@
 """Members views."""
 
 from datetime import date
-
-# Django REST framework
+from apps.users.serializers import UserModelSerializer
+from apps.sports.models import Assistance, Club, Invitation, Member, Team
+from apps.sports.permissions import (IsClubAdmin, IsInvited,
+                                     IsSelfMemberOrClubOwner)
+from apps.sports.serializers import (AddTeamMemberSerializer,
+                                     AssistanceModelSerializer,
+                                     CreateAssistanceSerializer,
+                                     CreateInvitationSerializer,
+                                     CreateTeamSerializer,
+                                     InvitationModelSerializer,
+                                     MemberModelSerializer,
+                                     TeamModelSerializer, RemoveTeamMemberSerializer)
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
-from rest_framework.response import Response
-
-# Permissions
 from rest_framework.permissions import IsAuthenticated
-from apps.sports.permissions import (IsClubAdmin, IsInvited,
-                                     IsSelfMemberOrClubOwner)
-
-# Models
-from apps.sports.models import Assistance, Club, Invitation, Member
-
-# Serializers
-from apps.sports.serializers import (AssistanceModelSerializer,
-                                     CreateAssistanceSerializer,
-                                     CreateInvitationSerializer,
-                                     InvitationModelSerializer,
-                                     MemberModelSerializer)
+from rest_framework.response import Response
 
 
 class MemberViewSet(viewsets.ModelViewSet):
@@ -142,3 +138,60 @@ class AssistanceViewSet(mixins.ListModelMixin,
         assistances = serializer.save()
         data = AssistanceModelSerializer(assistances, many=True).data
         return Response(data=data, status=status.HTTP_201_CREATED)
+
+
+class TeamViewset(viewsets.ModelViewSet):
+    """
+    Team view set.
+    Create, retrieve, update, delete or
+    list the team of a club.
+    """
+
+    serializer_class = TeamModelSerializer
+
+    def get_permissions(self):
+        """Assign permissions based on action."""
+        permissions = [IsAuthenticated]
+        if self.action not in ['list', 'retrieve']:
+            permissions.append(IsClubAdmin)
+        return [p() for p in permissions]
+
+    def dispatch(self, request, *args, **kwargs):
+        """Verify that the club exists."""
+        self.club = get_object_or_404(Club, slug=kwargs['slug'])
+        pk = kwargs.get('pk')
+        if pk:
+            self.team = get_object_or_404(Team, pk=pk)
+        return super(TeamViewset, self).dispatch(request, *args, **kwargs)
+
+    def get_queryset(self):
+        """Return club teams."""
+        return Team.objects.filter(club=self.club)
+
+    def create(self, request, *args, **kwargs):
+        data = request.data
+        serializer = CreateTeamSerializer(data=data, context={'club': self.club})
+        serializer.is_valid(raise_exception=True)
+        invitation = serializer.save()
+        data = TeamModelSerializer(invitation).data
+        return Response(data=data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['post'], url_path='add-member')
+    def add_member(self, request, *args, **kwargs):
+        data = request.data
+        serializer = AddTeamMemberSerializer(
+            data=data, context={'club': self.club, 'team': self.team})
+        serializer.is_valid(raise_exception=True)
+        users = serializer.save()
+        data = UserModelSerializer(users, many=True).data
+        return Response(data=data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='remove-member')
+    def remove_member(self, request, *args, **kwargs):
+        data = request.data
+        serializer = RemoveTeamMemberSerializer(
+            data=data, context={'club': self.club, 'team': self.team})
+        serializer.is_valid(raise_exception=True)
+        users = serializer.save()
+        data = UserModelSerializer(users, many=True).data
+        return Response(data=data, status=status.HTTP_200_OK)

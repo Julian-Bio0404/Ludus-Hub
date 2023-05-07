@@ -3,10 +3,34 @@
 from typing import Any, Sequence
 
 from apps.sports.models import (Assistance, Category, Club, Invitation, Member,
-                                Modality, Sport, Tag)
+                                Modality, Sport, Tag, Team)
 from apps.users.tests.factories import UserFactory
 from factory import Faker, SubFactory, post_generation
 from factory.django import DjangoModelFactory
+
+
+class SportFactory(DjangoModelFactory):
+    """Sport model factory."""
+
+    name = Faker('company')
+
+    @post_generation
+    def categories(self, create: bool, extracted: Sequence[Any], **kwargs):
+        if not create:
+            return
+        if extracted:
+            self.categories.add(*extracted)
+
+    @post_generation
+    def tags(self, create: bool, extracted: Sequence[Any], **kwargs):
+        if not create:
+            return
+        if extracted:
+            self.tags.add(*extracted)
+
+    class Meta:
+        model = Sport
+        django_get_or_create = ['name']
 
 
 class ClubFactory(DjangoModelFactory):
@@ -15,13 +39,14 @@ class ClubFactory(DjangoModelFactory):
     trainer = SubFactory(UserFactory)
     name = Faker('company')
     slug = Faker('slug')
+    sport = SubFactory(SportFactory)
 
     @post_generation
     def members(self, create: bool, extracted: Sequence[Any], **kwargs):
         if not create:
             return
         if extracted:
-            self.members.set(extracted)
+            self.members.add(*extracted)
 
     class Meta:
         model = Club
@@ -59,30 +84,6 @@ class AssistanceFactory(DjangoModelFactory):
         model = Assistance
 
 
-class SportFactory(DjangoModelFactory):
-    """Sport model factory."""
-
-    name = Faker('company')
-
-    @post_generation
-    def categories(self, create: bool, extracted: Sequence[Any], **kwargs):
-        if not create:
-            return
-        if extracted:
-            self.categories.set(extracted)
-
-    @post_generation
-    def tags(self, create: bool, extracted: Sequence[Any], **kwargs):
-        if not create:
-            return
-        if extracted:
-            self.tags.set(extracted)
-
-    class Meta:
-        model = Sport
-        django_get_or_create = ['name']
-
-
 class ModalityFactory(DjangoModelFactory):
     """Modality model factory."""
 
@@ -113,3 +114,13 @@ class TagFactory(DjangoModelFactory):
     class Meta:
         model = Tag
         django_get_or_create = ['name']
+
+
+class TeamFactory(DjangoModelFactory):
+    """Team model factory."""
+    name = Faker('company')
+    club = SubFactory(ClubFactory)
+
+    class Meta:
+        model = Team
+        # django_get_or_create = ['name']

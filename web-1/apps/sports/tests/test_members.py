@@ -1,24 +1,16 @@
 """Members tests."""
 
-from datetime import datetime, timedelta
 import json
+from datetime import datetime, timedelta
 
 import pytest
-
-# Django
-from django.urls import reverse
-
-# Django REST Framework
-from rest_framework import status
-
-# Models
-from apps.sports.models import Invitation, Member
-
-# Factories
+from apps.sports.models import Invitation, Member, Team
 from apps.sports.tests.factories import (AssistanceFactory, ClubFactory,
-                                         InvitationFactory, MemberFactory)
-
+                                         InvitationFactory, MemberFactory,
+                                         TeamFactory, CategoryFactory, SportFactory)
 from apps.users.tests.factories import UserFactory
+from django.urls import reverse
+from rest_framework import status
 
 pytestmark = pytest.mark.django_db
 
@@ -271,3 +263,147 @@ class TestAssistanceCase:
         # Check that list all assistance of member
         assert response.status_code == status.HTTP_200_OK
         assert len(content['assistances']) == 2
+
+
+class TestTeamCase:
+
+    def test_create_team(self, trainer_client, athlete_client):
+        club = ClubFactory(trainer=trainer_client.user)
+        url = reverse('sports:teams-list', args=[club.slug])
+
+        # Create with user that not is trainer
+        body = {'name': 'team test 1', 'category': 'Senior'}
+        response = athlete_client.post(url, body)
+        team = Team.objects.filter(name='team test 1')
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert not team.exists()
+
+        # Create wiht category that does not exist
+        body = {'name': 'team test 1', 'category': 'Senior'}
+        response = trainer_client.post(url, body)
+        team = Team.objects.filter(name='team test 1')
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert not team.exists()
+
+        # Create with category that exist but the club don't have a category
+        category = CategoryFactory(name='Female Senior')
+        body = {'name': 'team test 1', 'category': category.id}
+        response = trainer_client.post(url, body)
+        team = Team.objects.filter(name='team test 1')
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert not team.exists()
+
+        # Create without category and members
+        body = {'name': 'team test 1'}
+        response = trainer_client.post(url, body)
+        team = Team.objects.filter(name='team test 1')
+        assert response.status_code == status.HTTP_201_CREATED
+        assert team.exists()
+
+        # Create with category and the club have the category
+        sport = SportFactory(name='Karate')
+        sport.categories.add(category)
+        club.sport = sport
+        club.save()
+        body = {'name': 'team test 2', 'category': category.id}
+        response = trainer_client.post(url, body)
+        team = Team.objects.filter(name='team test 2')
+        assert response.status_code == status.HTTP_201_CREATED
+        assert team.exists()
+
+        # Create with users that are not members of club
+        body = {'name': 'team test 3', 'users': [athlete_client.user.username]}
+        response = trainer_client.post(url, body)
+        team = Team.objects.filter(name='team test 3')
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert not team.exists()
+
+        # Create with users that are members of club
+        MemberFactory(active=True, club=club, user=athlete_client.user)
+        body = {'name': 'team test 3', 'users': [athlete_client.user.username]}
+        response = trainer_client.post(url, body)
+        team = Team.objects.filter(name='team test 3')
+        assert response.status_code == status.HTTP_201_CREATED
+        assert team.exists()
+
+    def test_add_member(self, trainer_client, athlete_client):
+        club = ClubFactory(trainer=trainer_client.user)
+        team = TeamFactory(club=club)
+        url = reverse('sports:teams-add-member', args=[club.slug, team.id])
+
+        # with users that are not members of club
+        body = {'users': [athlete_client.user.username]}
+        response = trainer_client.post(url, body)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+        # with users that are members of club
+        MemberFactory(active=True, club=club, user=athlete_client.user)
+        body = {'users': [athlete_client.user.username]}
+        response = trainer_client.post(url, body)
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_remove_member(self, trainer_client, athlete_client):
+        club = ClubFactory(trainer=trainer_client.user)
+        team = TeamFactory(club=club)
+        url = reverse('sports:teams-remove-member', args=[club.slug, team.id])
+        MemberFactory(active=True, club=club, user=athlete_client.user)
+        body = {'users': [athlete_client.user.username]}
+        response = trainer_client.post(url, body)
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_update_team(self, trainer_client, athlete_client):
+        category = CategoryFactory(name='Female Senior')
+        sport = SportFactory(name='Karate', categories=[category])
+        club = ClubFactory(trainer=trainer_client.user, sport=sport)
+        team = TeamFactory(club=club)
+        # sport.categories.add(category)
+        url = reverse('sports:teams-detail', args=[club.slug, team.id])
+
+        # Update with club admin
+        body = {'name': 'team test 1', 'category_id': category.id}
+        response = trainer_client.patch(url, body)
+        team_update = Team.objects.get(id=team.id)
+        assert response.status_code == status.HTTP_200_OK
+        assert team.name != team_update.name
+        assert team.category != team_update.category
+
+        # Update with category that does not belong to club sport
+        category2 = CategoryFactory(name='Basic Senior')
+        body = {'name': 'team test 1', 'category_id': category2.id}
+        response = trainer_client.patch(url, body)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+        # Update with athlete user
+        body = {'name': 'team test 2'}
+        response = athlete_client.patch(url, body)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_retrieve_team(self, trainer_client, athlete_client):
+        club = ClubFactory(trainer=trainer_client.user)
+        team = TeamFactory(club=club)
+        url = reverse('sports:teams-detail', args=[club.slug, team.id])
+        response = trainer_client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+
+        response = athlete_client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_list_teams(self, trainer_client, athlete_client):
+        club = ClubFactory(trainer=trainer_client.user)
+        TeamFactory.create_batch(size=3, club=club)
+        url = reverse('sports:teams-list', args=[club.slug])
+        response = trainer_client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+
+        response = athlete_client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+
+    def delete_team(self, trainer_client, athlete_client):
+        club = ClubFactory(trainer=trainer_client.user)
+        team = TeamFactory(club=club)
+        url = reverse('sports:teams-detail', args=[club.slug, team.id])
+        response = athlete_client.delete(url)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+        response = trainer_client.delete(url)
+        assert response.status_code == status.HTTP_204_NO_CONTENT

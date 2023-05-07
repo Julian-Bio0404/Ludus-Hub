@@ -72,6 +72,7 @@ class SportModel(SportfyModel):
     slug = AutoSlugField(
         max_length=150,
         populate_from='name',
+        unique_with=['name'],
         always_update=True
     )
 
