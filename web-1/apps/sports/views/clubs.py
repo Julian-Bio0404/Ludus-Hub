@@ -30,7 +30,7 @@ class ClubViewSet(viewsets.ModelViewSet):
     filter_backends = (SearchFilter, OrderingFilter, DjangoFilterBackend)
     search_fields = ('slug',)
     ordering_fields = ('slug',)
-    ordering = ('slug', 'members__count')
+    ordering = ('slug',)
     filter_fields = ('city',)
 
     def get_permissions(self):

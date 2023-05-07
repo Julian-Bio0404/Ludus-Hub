@@ -1,12 +1,6 @@
 -r ./base.txt
 
 gunicorn==20.1.0
-
-# Static files
 django-storages[boto3]==1.13.2
-
-# Email
-django-anymail[mailgun]==9.0
-
-# Flower
+django-anymail[mailgun]==9.2
 flower==1.2.0
