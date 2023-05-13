@@ -1,6 +1,6 @@
 """Tournament models."""
 
-from apps.utils.models import SportModel, SportfyModel
+from apps.utils.models import SportfyModel, SportModel
 from django.db import models
 from djchoices import ChoiceItem, DjangoChoices
 from mptt.models import MPTTModel, TreeForeignKey
@@ -18,10 +18,10 @@ class Tournament(SportModel):
 
     class Levels(DjangoChoices):
         """Tournament levels."""
-        local = ChoiceItem('local', 'local')
-        departmental = ChoiceItem('departmental', 'departmental')
-        national = ChoiceItem('national', 'national')
-        international = ChoiceItem('international', 'international')
+        local = ChoiceItem('local', 'Local')
+        departmental = ChoiceItem('departmental', 'Departmental')
+        national = ChoiceItem('national', 'National')
+        international = ChoiceItem('international', 'International')
 
     type = models.CharField(choices=Types.choices, max_length=12)
 
@@ -122,6 +122,9 @@ class Draw(SportfyModel):
         default=0
     )
 
+    def __str__(self) -> str:
+        return f'Draw from {self.tournament.name}'
+
 
 class Round(SportfyModel, MPTTModel):
     """Round model."""
@@ -147,7 +150,11 @@ class Round(SportfyModel, MPTTModel):
 
     type = models.CharField(choices=Types.choices, max_length=26)
 
-    level = models.CharField(choices=Levels.choices, max_length=9)
+    level_type = models.CharField(
+        choices=Levels.choices,
+        max_length=9,
+        default=Levels.playoff
+    )
 
     tournament = models.ForeignKey(
         'sports.Tournament',
@@ -172,7 +179,7 @@ class Round(SportfyModel, MPTTModel):
     order = models.SmallIntegerField(default=1)
 
     def __str__(self) -> str:
-        return f'Round {self.order}: {self.level}'
+        return f'Round {self.order}: {self.type}'
 
 
 class RoundMatch(SportfyModel):
