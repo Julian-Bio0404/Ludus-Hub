@@ -2,16 +2,15 @@
 
 import nested_admin
 from apps.sports.models import (Assistance, Category, Club, Competitor, Draw,
-                                Invitation, Match, MatchCompetitor, Member,
-                                Modality, Rating, Round, RoundMatch, Sport,
-                                Tag, Team, Tournament)
+                                Invitation, Match, Member, Modality, Round,
+                                RoundMatch, Sport, Tag, Team, Tournament)
 from django import forms
 from django.contrib import admin
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 
 
-class BaseCategoryInline(admin.TabularInline):
+class BaseCategoryInline(nested_admin.NestedTabularInline):
 
     extra = 0
     verbose_name_plural = 'Categories'
@@ -248,7 +247,7 @@ class TournamentCategoryInline(BaseCategoryInline):
     model = Tournament.categories.through
 
 
-class RefereesInline(admin.TabularInline):
+class RefereesInline(nested_admin.NestedTabularInline):
     """Referees inline."""
 
     model = Tournament.referees.through
@@ -257,26 +256,77 @@ class RefereesInline(admin.TabularInline):
     suit_form_inlines_hide_original = True
 
 
-class CompetitorInline(admin.TabularInline):
-    """Competitor inline admin"""
-
-    model = Competitor
+class BaseCompetitorInline(nested_admin.NestedTabularInline):
+    """Base competitor inline admin."""
     extra = 0
     verbose_name_plural = 'Competitors'
     suit_form_inlines_hide_original = True
 
 
-class DrawInline(admin.TabularInline):
+class CompetitorInline(BaseCompetitorInline):
+    """Competitor inline admin"""
+
+    model = Competitor
+
+
+class CompetitorsInline(BaseCompetitorInline):
+    """
+    Competitors inline admin.
+    Util for Match admin that have a relation many to many
+    with competitors.
+    """
+
+    model = Match.competitors.through
+    readonly_fields = ['rating']
+
+    def rating(self, obj):
+        if obj.pk:
+            return obj.rating.score
+        return '-'
+    rating.short_description = 'Score'
+    rating.allow_tags = True
+
+
+class RoundMatchInline(nested_admin.NestedTabularInline):
+    """Round Match inline admin."""
+
+    model = RoundMatch
+    extra = 0
+    verbose_name_plural = 'Matches'
+    suit_form_inlines_hide_original = True
+    readonly_fields = ['clash']
+
+    def clash(self, obj):
+        if obj.pk:
+            url = reverse('admin:sports_match_change', args=[obj.match.pk])
+            return mark_safe('<a href="{}">{}</a>'.format(url, obj.match))
+        return '-'
+    clash.short_description = 'Match Link'
+    clash.allow_tags = True
+
+
+class RoundInline(nested_admin.NestedTabularInline):
+    """Round inline admin."""
+
+    model = Round
+    extra = 0
+    verbose_name_plural = 'Rounds'
+    suit_form_inlines_hide_original = True
+    inlines = [RoundMatchInline]
+
+
+class DrawInline(nested_admin.NestedTabularInline):
     """Draw inline admin"""
 
     model = Draw
     extra = 0
     verbose_name_plural = 'Draws'
     suit_form_inlines_hide_original = True
+    inlines = [RoundInline]
 
 
 @admin.register(Tournament)
-class TournamentAdmin(admin.ModelAdmin):
+class TournamentAdmin(nested_admin.NestedModelAdmin):
     """Tournament model admin."""
 
     list_display = ['name', 'slug', 'type', 'level', 'created', 'updated']
@@ -304,43 +354,12 @@ class TournamentAdmin(admin.ModelAdmin):
         }),
 
 
-class RoundMatchInline(nested_admin.NestedTabularInline):
-    """Match inline admin."""
+@admin.register(Match)
+class MatchAdmin(nested_admin.NestedModelAdmin):
+    """Match admin."""
 
-    model = RoundMatch
-    extra = 0
-    verbose_name_plural = 'Matches'
-    suit_form_inlines_hide_original = True
+    list_display = ['type', 'state', 'created', 'updated']
 
+    list_filter = ['type', 'state']
 
-class RoundInline(nested_admin.NestedTabularInline):
-    """Round inline admin."""
-
-    model = Round
-    extra = 0
-    verbose_name_plural = 'Rounds'
-    suit_form_inlines_hide_original = True
-
-    inlines = [RoundMatchInline]
-
-
-@admin.register(Draw)
-class DrawAdmin(nested_admin.NestedModelAdmin):
-    """Draw model admin"""
-
-    list_display = ['tournament', 'type', 'category', 'created', 'updated']
-
-    search_fields = ['tournament__name']
-
-    list_filter = ['type']
-
-    inlines = [RoundInline]
-
-    fieldsets = (
-        'Details', {
-            'classes': ('suit-tab', 'suit-tab-general'),
-            'fields': (
-                'tournament',
-                'type', 'category'
-            ),
-        }),
+    inlines = [CompetitorsInline]

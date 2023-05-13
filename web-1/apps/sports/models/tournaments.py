@@ -153,7 +153,8 @@ class Round(SportfyModel, MPTTModel):
     level_type = models.CharField(
         choices=Levels.choices,
         max_length=9,
-        default=Levels.playoff
+        default=Levels.playoff,
+        verbose_name='level'
     )
 
     tournament = models.ForeignKey(
