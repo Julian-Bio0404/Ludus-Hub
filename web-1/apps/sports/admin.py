@@ -1,11 +1,21 @@
 """Sports models admin."""
 
-from apps.sports.models import (Assistance, Category, Club, Invitation, Member,
-                                Modality, Sport, Tag, Team)
+import nested_admin
+from apps.sports.models import (Assistance, Category, Club, Competitor, Draw,
+                                Invitation, Match, MatchCompetitor, Member,
+                                Modality, Rating, Round, RoundMatch, Sport,
+                                Tag, Team, Tournament)
 from django import forms
 from django.contrib import admin
 from django.urls import reverse
 from django.utils.safestring import mark_safe
+
+
+class BaseCategoryInline(admin.TabularInline):
+
+    extra = 0
+    verbose_name_plural = 'Categories'
+    suit_form_inlines_hide_original = True
 
 
 class TeamMemberInline(admin.TabularInline):
@@ -154,9 +164,6 @@ class CategoryInline(admin.TabularInline):
     """Category inline admin."""
 
     model = Sport.categories.through
-    extra = 0
-    verbose_name_plural = 'Categories'
-    suit_form_inlines_hide_original = True
 
 
 class TagInline(admin.TabularInline):
@@ -232,4 +239,108 @@ class SportAdmin(admin.ModelAdmin):
         'Details', {
             'classes': ('suit-tab', 'suit-tab-general'),
             'fields': ('name', 'icon', 'description'),
+        }),
+
+
+class TournamentCategoryInline(BaseCategoryInline):
+    """Category inline admin."""
+
+    model = Tournament.categories.through
+
+
+class RefereesInline(admin.TabularInline):
+    """Referees inline."""
+
+    model = Tournament.referees.through
+    extra = 0
+    verbose_name_plural = 'Referees'
+    suit_form_inlines_hide_original = True
+
+
+class CompetitorInline(admin.TabularInline):
+    """Competitor inline admin"""
+
+    model = Competitor
+    extra = 0
+    verbose_name_plural = 'Competitors'
+    suit_form_inlines_hide_original = True
+
+
+class DrawInline(admin.TabularInline):
+    """Draw inline admin"""
+
+    model = Draw
+    extra = 0
+    verbose_name_plural = 'Draws'
+    suit_form_inlines_hide_original = True
+
+
+@admin.register(Tournament)
+class TournamentAdmin(admin.ModelAdmin):
+    """Tournament model admin."""
+
+    list_display = ['name', 'slug', 'type', 'level', 'created', 'updated']
+
+    search_fields = ['name']
+
+    list_filter = ['type', 'level']
+
+    inlines = [
+        TournamentCategoryInline,
+        RefereesInline,
+        CompetitorInline,
+        DrawInline
+    ]
+
+    fieldsets = (
+        'Details', {
+            'classes': ('suit-tab', 'suit-tab-general'),
+            'fields': (
+                'name', 'type',
+                'level', 'sport',
+                'description', 'date',
+                'city', 'address'
+            ),
+        }),
+
+
+class RoundMatchInline(nested_admin.NestedTabularInline):
+    """Match inline admin."""
+
+    model = RoundMatch
+    extra = 0
+    verbose_name_plural = 'Matches'
+    suit_form_inlines_hide_original = True
+
+
+class RoundInline(nested_admin.NestedTabularInline):
+    """Round inline admin."""
+
+    model = Round
+    extra = 0
+    verbose_name_plural = 'Rounds'
+    suit_form_inlines_hide_original = True
+
+    inlines = [RoundMatchInline]
+
+
+@admin.register(Draw)
+class DrawAdmin(nested_admin.NestedModelAdmin):
+    """Draw model admin"""
+
+    list_display = ['tournament', 'type', 'category', 'created', 'updated']
+
+    search_fields = ['tournament__name']
+
+    list_filter = ['type']
+
+    inlines = [RoundInline]
+
+    fieldsets = (
+        'Details', {
+            'classes': ('suit-tab', 'suit-tab-general'),
+            'fields': (
+                'tournament',
+                'type', 'category'
+            ),
         }),
