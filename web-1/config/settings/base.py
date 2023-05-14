@@ -21,7 +21,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 DJANGO_APPS = [
-    'suit',
+    # 'suit',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

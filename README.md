@@ -21,6 +21,7 @@ Sportfy backend, an application that connects coaches with athletes and allows f
 to run the project:
 ```bash
 docker-compose -f local.yml build
+docker-compose -f  local.yml run --rm django python manage.py collectstatic
 docker-compose -f local.yml up
 ```
 
