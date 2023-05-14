@@ -245,6 +245,7 @@ class TournamentCategoryInline(BaseCategoryInline):
     """Category inline admin."""
 
     model = Tournament.categories.through
+    suit_classes = 'suit-tab suit-tab-categories'
 
 
 class RefereesInline(nested_admin.NestedTabularInline):
@@ -254,6 +255,7 @@ class RefereesInline(nested_admin.NestedTabularInline):
     extra = 0
     verbose_name_plural = 'Referees'
     suit_form_inlines_hide_original = True
+    suit_classes = 'suit-tab suit-tab-referees'
 
 
 class BaseCompetitorInline(nested_admin.NestedTabularInline):
@@ -267,6 +269,7 @@ class CompetitorInline(BaseCompetitorInline):
     """Competitor inline admin"""
 
     model = Competitor
+    suit_classes = 'suit-tab suit-tab-competitors'
 
 
 class CompetitorsInline(BaseCompetitorInline):
@@ -322,6 +325,7 @@ class DrawInline(nested_admin.NestedTabularInline):
     extra = 0
     verbose_name_plural = 'Draws'
     suit_form_inlines_hide_original = True
+    suit_classes = 'suit-tab suit-tab-draws'
     inlines = [RoundInline]
 
 
@@ -343,8 +347,8 @@ class TournamentAdmin(nested_admin.NestedModelAdmin):
     ]
 
     fieldsets = (
-        'Details', {
-            'classes': ('suit-tab', 'suit-tab-general'),
+        ('Details', {
+            'classes': ('suit-tab', 'suit-tab-details'),
             'fields': (
                 'name', 'type',
                 'level', 'sport',
@@ -352,6 +356,15 @@ class TournamentAdmin(nested_admin.NestedModelAdmin):
                 'city', 'address'
             ),
         }),
+    )
+
+    suit_form_tabs = (
+        ('details', 'Details'),
+        ('categories', 'Categories'),
+        ('referees', 'Referees'),
+        ('competitors', 'Competitors'),
+        ('draws', 'Draws'),
+    )
 
 
 @admin.register(Match)
