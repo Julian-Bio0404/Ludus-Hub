@@ -5,3 +5,4 @@ from .members import (AddTeamMemberSerializer, AssistanceModelSerializer,  # NOQ
                       MemberModelSerializer, RemoveTeamMemberSerializer,
                       TeamModelSerializer)
 from .sports import SportModelSerializer  # NOQA
+from .tournaments import CreateTournamentSerializer, TournamentModelSerializer  # NOQA
