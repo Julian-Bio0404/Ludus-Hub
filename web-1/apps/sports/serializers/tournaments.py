@@ -2,14 +2,16 @@
 
 from apps.sports.models import Sport, Tournament
 from apps.sports.serializers import SportModelSerializer
+from apps.users.serializers import UserModelSerializer
 from rest_framework import serializers
 
 
 class TournamentModelSerializer(serializers.ModelSerializer):
     """Tournament model serializer."""
 
+    creator = UserModelSerializer(read_only=True)
     categories = serializers.SerializerMethodField()
-    sport = SportModelSerializer
+    sport = SportModelSerializer(read_only=True)
 
     def get_categories(self, obj):
         return [c.__str__() for c in obj.categories.all()]
@@ -23,11 +25,11 @@ class TournamentModelSerializer(serializers.ModelSerializer):
             'description', 'city',
             'address', 'sport',
             'date', 'categories',
-            'referees', 'updated',
-            'created'
+            'creator', 'referees',
+            'created', 'updated'
         ]
 
-    read_only_fields = ['sport', 'categories']
+    read_only_fields = ['sport', 'categories', 'creator']
 
 
 class CreateTournamentSerializer(serializers.Serializer):
@@ -63,7 +65,8 @@ class CreateTournamentSerializer(serializers.Serializer):
         """Create tournament and assign the categories."""
         tournament = Tournament.objects.create(
             **data,
-            sport=self.context['sport']
+            sport=self.context['sport'],
+            creator=self.context['creator']
         )
-        tournament.categories.add(self.context['categories'])
+        tournament.categories.add(*self.context['categories'])
         return tournament

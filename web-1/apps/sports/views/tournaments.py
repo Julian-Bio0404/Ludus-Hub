@@ -28,7 +28,8 @@ class TournamentViewSet(mixins.ListModelMixin,
 
     def create(self, request, *args, **kwargs):
         data = request.data
-        serializer = CreateTournamentSerializer(data=data)
+        serializer = CreateTournamentSerializer(
+            data=data, context={'creator': self.request.user})
         serializer.is_valid(raise_exception=True)
         tournament = serializer.save()
         data = TournamentModelSerializer(tournament).data
