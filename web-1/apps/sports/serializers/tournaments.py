@@ -1,8 +1,8 @@
-"""Sport serializers."""
+"""Tournament serializers."""
 
-from rest_framework import serializers
-from apps.sports.models import Tournament, Sport
+from apps.sports.models import Sport, Tournament
 from apps.sports.serializers import SportModelSerializer
+from rest_framework import serializers
 
 
 class TournamentModelSerializer(serializers.ModelSerializer):
@@ -21,7 +21,7 @@ class TournamentModelSerializer(serializers.ModelSerializer):
             'id', 'name', 'slug',
             'type', 'level',
             'description', 'city',
-            'address', 'sport'
+            'address', 'sport',
             'date', 'categories',
             'referees', 'updated',
             'created'
@@ -45,22 +45,25 @@ class CreateTournamentSerializer(serializers.Serializer):
 
     def validate(self, data):
         """Check caegories by sport."""
-        category_ids = data.get('categories')
-        sport_name = data.get('sport')
+        category_ids = data.pop('categories')
+        sport_name = data.pop('sport')
         sport = Sport.objects.filter(name=sport_name).last()
         categories = []
         for id in category_ids:
-            category = sport.categories.filter(id=id)
+            category = sport.categories.filter(id=id).last()
             if not category:
                 raise serializers.ValidationError(
-                    f'The category with id {id} does not exist for this club.')
+                    f'The category with id {id} does not exist for {sport.name}.')
             categories.append(category)
         self.context['categories'] = categories
-        data.pop('categories')
+        self.context['sport'] = sport
         return data
 
     def create(self, data):
         """Create tournament and assign the categories."""
-        tournament = Tournament.objects.create(**data)
-        tournament.categories.add(*self.context['categories'])
+        tournament = Tournament.objects.create(
+            **data,
+            sport=self.context['sport']
+        )
+        tournament.categories.add(self.context['categories'])
         return tournament
