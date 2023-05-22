@@ -23,6 +23,12 @@ class Tournament(SportModel):
         national = ChoiceItem('national', 'National')
         international = ChoiceItem('international', 'International')
 
+    creator = models.ForeignKey(
+        'users.User',
+        on_delete=models.SET_NULL,
+        blank=True, null=True
+    )
+
     type = models.CharField(choices=Types.choices, max_length=12)
 
     level = models.CharField(choices=Levels.choices, max_length=13)
@@ -42,7 +48,11 @@ class Tournament(SportModel):
 
     categories = models.ManyToManyField('sports.Category', blank=True)
 
-    referees = models.ManyToManyField('users.User', blank=True)
+    referees = models.ManyToManyField(
+        'users.User',
+        related_name='tournaments_as_referee',
+        blank=True
+    )
 
     def __str__(self) -> str:
         return self.name
@@ -73,8 +83,8 @@ class Competitor(SportfyModel):
 
     tournament = models.ForeignKey(
         'sports.Tournament',
-        on_delete=models.SET_DEFAULT,
-        default=0
+        on_delete=models.SET_NULL,
+        blank=True, null=True
     )
 
     def __str__(self) -> str:
@@ -118,8 +128,7 @@ class Draw(SportfyModel):
 
     tournament = models.ForeignKey(
         'sports.Tournament',
-        on_delete=models.SET_DEFAULT,
-        default=0
+        on_delete=models.CASCADE
     )
 
     def __str__(self) -> str:
