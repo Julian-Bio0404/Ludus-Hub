@@ -1,6 +1,7 @@
 """Tournament views."""
 
 from apps.sports.models import Tournament
+from apps.sports.permissions import HasCompetitors, IsTournamentCreator
 from apps.sports.serializers import (CreateTournamentSerializer,
                                      TournamentModelSerializer)
 from rest_framework import mixins, status, viewsets
@@ -24,6 +25,12 @@ class TournamentViewSet(mixins.ListModelMixin,
     def get_permissions(self):
         """Assign permissions based on action."""
         permissions = [IsAuthenticated]
+        if self.action in ['destroy']:
+            permissions = [
+                IsAuthenticated,
+                IsTournamentCreator,
+                HasCompetitors
+            ]
         return [p() for p in permissions]
 
     def create(self, request, *args, **kwargs):
