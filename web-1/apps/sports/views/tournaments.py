@@ -2,8 +2,10 @@
 
 from apps.sports.models import Tournament
 from apps.sports.permissions import HasCompetitors, IsTournamentCreator
-from apps.sports.serializers import (CreateTournamentSerializer,
-                                     TournamentModelSerializer, CompetitorModelSerializer)
+from apps.sports.serializers import (AddCompetitorSerializer,
+                                     CompetitorModelSerializer,
+                                     CreateTournamentSerializer,
+                                     TournamentModelSerializer)
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
@@ -46,7 +48,13 @@ class TournamentViewSet(mixins.ListModelMixin,
 
     @action(detail=True, methods=['post'])
     def inscriptions(self, request, *args, **kwargs):
-        pass
+        data = request.data
+        serializer = AddCompetitorSerializer(
+            data=data, context={'tournament': self.get_object()})
+        serializer.is_valid(raise_exception=True)
+        competitor = serializer.save()
+        data = CompetitorModelSerializer(competitor).data
+        return Response(data=data, status=status.HTTP_201_CREATED)
 
 
 class CompetitorViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
@@ -56,6 +64,10 @@ class CompetitorViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     """
 
     serializer_class = CompetitorModelSerializer
+
+    def get_permissions(self):
+        """Assign permissions based on action."""
+        return [IsAuthenticated()]
 
     def get_queryset(self):
         return self.tournament.competitor_set.all()
