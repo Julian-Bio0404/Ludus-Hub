@@ -3,7 +3,8 @@
 import nested_admin
 from apps.sports.models import (Assistance, Category, Club, Competitor, Draw,
                                 Invitation, Match, Member, Modality, Round,
-                                RoundMatch, Sport, Tag, Team, Tournament)
+                                RoundMatch, Rules, Sport, Tag, Team,
+                                Tournament)
 from django import forms
 from django.contrib import admin
 from django.urls import reverse
@@ -163,14 +164,30 @@ class CategoryInline(admin.TabularInline):
     """Category inline admin."""
 
     model = Sport.categories.through
+    suit_classes = 'suit-tab suit-tab-categories'
+    extra = 0
+    verbose_name_plural = 'Categories'
+    suit_form_inlines_hide_original = True
 
 
 class TagInline(admin.TabularInline):
     """Tag inline admin."""
 
     model = Sport.tags.through
+    suit_classes = 'suit-tab suit-tab-tags'
     extra = 0
     verbose_name_plural = 'Tags'
+    suit_form_inlines_hide_original = True
+
+
+class RulesInline(admin.TabularInline):
+    """Sport Rules inline."""
+
+    model = Rules
+    suit_classes = 'suit-tab suit-tab-rules'
+    extra = 0
+    verbose_name = 'Rules'
+    suit_form_inlines_hide_original = True
 
 
 @admin.register(Tag)
@@ -232,13 +249,20 @@ class SportAdmin(admin.ModelAdmin):
 
     search_fields = ['name']
 
-    inlines = [CategoryInline, TagInline]
+    inlines = [RulesInline, CategoryInline, TagInline]
 
     fieldsets = (
         'Details', {
-            'classes': ('suit-tab', 'suit-tab-general'),
+            'classes': ('suit-tab', 'suit-tab-details'),
             'fields': ('name', 'icon', 'description'),
         }),
+
+    suit_form_tabs = (
+        ('details', 'Details'),
+        ('rules', 'Rules'),
+        ('categories', 'Categories'),
+        ('tags', 'Tags'),
+    )
 
 
 class TournamentCategoryInline(BaseCategoryInline):
