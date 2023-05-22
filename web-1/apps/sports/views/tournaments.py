@@ -6,8 +6,10 @@ from apps.sports.serializers import (AddCompetitorSerializer,
                                      CompetitorModelSerializer,
                                      CreateTournamentSerializer,
                                      TournamentModelSerializer)
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.filters import OrderingFilter
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -25,6 +27,10 @@ class TournamentViewSet(mixins.ListModelMixin,
 
     queryset = Tournament.objects.all()
     serializer_class = TournamentModelSerializer
+    filter_backends = (OrderingFilter, DjangoFilterBackend)
+    ordering_fields = ('slug', 'date')
+    ordering = ('date',)
+    filterset_fields = ('slug', 'type', 'sport__slug')
 
     def get_permissions(self):
         """Assign permissions based on action."""
@@ -64,6 +70,10 @@ class CompetitorViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     """
 
     serializer_class = CompetitorModelSerializer
+    filter_backends = (OrderingFilter, DjangoFilterBackend)
+    ordering_fields = ('created', 'athlete__username', 'team__slug')
+    ordering = ('created',)
+    filterset_fields = ('athlete__username', 'team__slug', 'category__id')
 
     def get_permissions(self):
         """Assign permissions based on action."""
