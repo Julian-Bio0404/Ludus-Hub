@@ -3,8 +3,10 @@
 from apps.sports.models import Tournament
 from apps.sports.permissions import HasCompetitors, IsTournamentCreator
 from apps.sports.serializers import (CreateTournamentSerializer,
-                                     TournamentModelSerializer)
+                                     TournamentModelSerializer, CompetitorModelSerializer)
 from rest_framework import mixins, status, viewsets
+from rest_framework.decorators import action
+from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
@@ -41,3 +43,23 @@ class TournamentViewSet(mixins.ListModelMixin,
         tournament = serializer.save()
         data = TournamentModelSerializer(tournament).data
         return Response(data=data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['post'])
+    def inscriptions(self, request, *args, **kwargs):
+        pass
+
+
+class CompetitorViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    """
+    Competitor viewset.
+    List or delete competitors.
+    """
+
+    serializer_class = CompetitorModelSerializer
+
+    def get_queryset(self):
+        return self.tournament.competitor_set.all()
+
+    def dispatch(self, request, *args, **kwargs):
+        self.tournament = get_object_or_404(Tournament, id=kwargs['id'])
+        return super(CompetitorViewSet, self).dispatch(request, *args, **kwargs)

@@ -1,7 +1,7 @@
 """Tournament serializers."""
 
-from apps.sports.models import Sport, Tournament
-from apps.sports.serializers import SportModelSerializer
+from apps.sports.models import Sport, Tournament, Competitor
+from apps.sports.serializers import SportModelSerializer, TeamModelSerializer
 from apps.users.serializers import UserModelSerializer
 from rest_framework import serializers
 
@@ -70,3 +70,33 @@ class CreateTournamentSerializer(serializers.Serializer):
         )
         tournament.categories.add(*self.context['categories'])
         return tournament
+
+
+class AddCompetitorSerializer(serializers.Serializer):
+    """
+    Add Competitor serializer.
+    Util for add a competitor to a tournament.
+    """
+    pass
+
+
+class CompetitorModelSerializer(serializers.ModelSerializer):
+    """Competitor model serializer."""
+
+    athlete = UserModelSerializer(read_only=True)
+    team = TeamModelSerializer(read_only=True)
+    category = serializers.SerializerMethodField()
+
+    def get_category(self, obj):
+        return obj.category.__str__()
+
+    class Meta:
+        """Meta options."""
+        model = Competitor
+        fields = [
+            'athlete', 'team',
+            'category', 'created',
+            'updated'
+        ]
+
+        read_only_fields = ['athlete', 'team', 'category']
