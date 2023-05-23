@@ -166,12 +166,6 @@ class Round(SportfyModel, MPTTModel):
         verbose_name='level'
     )
 
-    tournament = models.ForeignKey(
-        'sports.Tournament',
-        on_delete=models.SET_DEFAULT,
-        default=0
-    )
-
     parent = TreeForeignKey(
         'self',
         on_delete=models.CASCADE,
@@ -179,6 +173,12 @@ class Round(SportfyModel, MPTTModel):
     )
 
     draw = models.ForeignKey('sports.Draw', on_delete=models.CASCADE)
+
+    groups = models.ManyToManyField(
+        'sports.Group',
+        through='sports.RoundGroup',
+        through_fields=('round', 'group')
+    )
 
     matches = models.ManyToManyField(
         'sports.Match',
@@ -190,6 +190,39 @@ class Round(SportfyModel, MPTTModel):
 
     def __str__(self) -> str:
         return f'Round {self.order}: {self.type}'
+
+
+class RoundGroup(SportfyModel):
+    """
+    Round Group model.
+    Acts as an intermediate model between Round and Group.
+    """
+
+    round = models.ForeignKey('sports.Round', on_delete=models.CASCADE)
+
+    group = models.ForeignKey('sports.Group', on_delete=models.CASCADE)
+
+    order = models.SmallIntegerField(default=1)
+
+    def __str__(self) -> str:
+        """Return username and club."""
+        return f'Group #{self.order}'
+
+
+class Group(SportfyModel):
+    """
+    Group model.
+    It is a Group of matches.
+    """
+
+    matches = models.ManyToManyField(
+        'sports.Match',
+        through='sports.GroupMatch',
+        through_fields=('group', 'match')
+    )
+
+    def __str__(self) -> str:
+        return 'Group'
 
 
 class RoundMatch(SportfyModel):
@@ -209,13 +242,31 @@ class RoundMatch(SportfyModel):
         return f'Match #{self.order} from {self.round}'
 
 
+class GroupMatch(SportfyModel):
+    """
+    Group Match model.
+    Acts as an intermediate model between Group and Match.
+    """
+
+    group = models.ForeignKey('sports.Group', on_delete=models.CASCADE)
+
+    match = models.ForeignKey('sports.Match', on_delete=models.CASCADE)
+
+    order = models.SmallIntegerField(default=1)
+
+    def __str__(self) -> str:
+        """Return username and club."""
+        return f'Match #{self.order}'
+
+
 class Match(SportfyModel):
     """Match model."""
 
     class Types(DjangoChoices):
         """Match types."""
-        group = ChoiceItem('group', 'Group')
+        individual = ChoiceItem('individual', 'Individual')
         versus = ChoiceItem('versus', 'Versus')
+        group = ChoiceItem('group', 'Group')
 
     class States(DjangoChoices):
         """Match states."""
@@ -223,7 +274,7 @@ class Match(SportfyModel):
         playing = ChoiceItem('playing', 'Playing')
         paused = ChoiceItem('paused', 'Paused')
 
-    type = models.CharField(choices=Types.choices, max_length=6)
+    type = models.CharField(choices=Types.choices, max_length=10)
 
     state = models.CharField(choices=States.choices, max_length=9)
 
@@ -232,6 +283,8 @@ class Match(SportfyModel):
         through='sports.MatchCompetitor',
         through_fields=('match', 'competitor')
     )
+
+    date = models.DateTimeField(blank=True, null=True)
 
     def __str__(self) -> str:
         return self.type
