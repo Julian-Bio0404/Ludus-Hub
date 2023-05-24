@@ -2,9 +2,9 @@
 
 import nested_admin
 from apps.sports.models import (Assistance, Category, Club, Competitor, Draw,
-                                Invitation, Match, Member, Modality, Round,
-                                RoundMatch, Rules, Sport, Tag, Team,
-                                Tournament)
+                                Group, GroupMatch, Invitation, Match, Member,
+                                Modality, Round, RoundGroup, RoundMatch, Rules,
+                                Sport, Tag, Team, Tournament)
 from django import forms
 from django.contrib import admin
 from django.urls import reverse
@@ -314,6 +314,15 @@ class CompetitorsInline(BaseCompetitorInline):
     rating.allow_tags = True
 
 
+class GroupMatchInline(nested_admin.NestedTabularInline):
+    """Group Match inline admin."""
+
+    model = GroupMatch
+    extra = 0
+    verbose_name_plural = 'Group Matches'
+    suit_form_inlines_hide_original = True
+
+
 class RoundMatchInline(nested_admin.NestedTabularInline):
     """Round Match inline admin."""
 
@@ -332,6 +341,24 @@ class RoundMatchInline(nested_admin.NestedTabularInline):
     clash.allow_tags = True
 
 
+class RoundGroupInline(nested_admin.NestedTabularInline):
+    """Round Group inline admin."""
+
+    model = RoundGroup
+    extra = 0
+    verbose_name_plural = 'Groups'
+    suit_form_inlines_hide_original = True
+    readonly_fields = ['group_matches']
+
+    def group_matches(self, obj):
+        if obj.pk:
+            url = reverse('admin:sports_group_change', args=[obj.group.pk])
+            return mark_safe('<a href="{}">{}</a>'.format(url, obj.group))
+        return '-'
+    group_matches.short_description = 'Group Link'
+    group_matches.allow_tags = True
+
+
 class RoundInline(nested_admin.NestedTabularInline):
     """Round inline admin."""
 
@@ -339,7 +366,7 @@ class RoundInline(nested_admin.NestedTabularInline):
     extra = 0
     verbose_name_plural = 'Rounds'
     suit_form_inlines_hide_original = True
-    inlines = [RoundMatchInline]
+    inlines = [RoundMatchInline, RoundGroupInline]
 
 
 class DrawInline(nested_admin.NestedTabularInline):
@@ -395,8 +422,17 @@ class TournamentAdmin(nested_admin.NestedModelAdmin):
 class MatchAdmin(nested_admin.NestedModelAdmin):
     """Match admin."""
 
-    list_display = ['type', 'state', 'created', 'updated']
+    list_display = ['title', 'type', 'state', 'created', 'updated']
 
     list_filter = ['type', 'state']
 
     inlines = [CompetitorsInline]
+
+
+@admin.register(Group)
+class GroupAdmin(nested_admin.NestedModelAdmin):
+    """Group admin."""
+
+    list_display = ['title', 'created', 'updated']
+
+    inlines = [GroupMatchInline]

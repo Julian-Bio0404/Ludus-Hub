@@ -215,6 +215,8 @@ class Group(SportfyModel):
     It is a Group of matches.
     """
 
+    title = models.CharField(max_length=300, null=True)
+
     matches = models.ManyToManyField(
         'sports.Match',
         through='sports.GroupMatch',
@@ -222,7 +224,7 @@ class Group(SportfyModel):
     )
 
     def __str__(self) -> str:
-        return 'Group'
+        return self.title
 
 
 class RoundMatch(SportfyModel):
@@ -274,6 +276,8 @@ class Match(SportfyModel):
         playing = ChoiceItem('playing', 'Playing')
         paused = ChoiceItem('paused', 'Paused')
 
+    title = models.CharField(max_length=300, null=True)
+
     type = models.CharField(choices=Types.choices, max_length=10)
 
     state = models.CharField(choices=States.choices, max_length=9)
@@ -287,7 +291,7 @@ class Match(SportfyModel):
     date = models.DateTimeField(blank=True, null=True)
 
     def __str__(self) -> str:
-        return self.type
+        return self.title
 
 
 class MatchCompetitor(SportfyModel):
@@ -306,4 +310,4 @@ class MatchCompetitor(SportfyModel):
     order = models.SmallIntegerField(default=1)
 
     def __str__(self) -> str:
-        return f'{self.competitor} from {self.match}'
+        return f'{self.competitor.__str__()}'

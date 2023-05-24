@@ -42,7 +42,7 @@ class CreateTournamentSerializer(serializers.Serializer):
     description = serializers.CharField(required=False)
     city = serializers.CharField(min_length=3)
     address = serializers.CharField(min_length=3)
-    sport = serializers.ChoiceField(choices=Sport.objects.values_list('name', flat=True))
+    sport = serializers.CharField(min_length=3)
     date = serializers.DateTimeField()
     categories = serializers.ListField(child=serializers.CharField())
 
@@ -51,6 +51,9 @@ class CreateTournamentSerializer(serializers.Serializer):
         category_ids = data.pop('categories')
         sport_name = data.pop('sport')
         sport = Sport.objects.filter(name=sport_name).last()
+        if not sport:
+            raise serializers.ValidationError(
+                f'The sport with name {sport_name} does not available')
         categories = []
         for id in category_ids:
             category = sport.categories.filter(id=id).last()
