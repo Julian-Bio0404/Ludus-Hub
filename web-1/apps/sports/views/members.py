@@ -1,7 +1,7 @@
 """Members views."""
 
 from datetime import date
-from apps.users.serializers import UserModelSerializer
+
 from apps.sports.models import Assistance, Club, Invitation, Member, Team
 from apps.sports.permissions import (IsClubAdmin, IsInvited,
                                      IsSelfMemberOrClubOwner)
@@ -12,9 +12,13 @@ from apps.sports.serializers import (AddTeamMemberSerializer,
                                      CreateTeamSerializer,
                                      InvitationModelSerializer,
                                      MemberModelSerializer,
-                                     TeamModelSerializer, RemoveTeamMemberSerializer)
+                                     RemoveTeamMemberSerializer,
+                                     TeamModelSerializer)
+from apps.users.serializers import UserModelSerializer
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.filters import OrderingFilter
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -29,6 +33,9 @@ class MemberViewSet(viewsets.ModelViewSet):
 
     serializer_class = MemberModelSerializer
     lookup_field = 'user__username'
+    filter_backends = (OrderingFilter, DjangoFilterBackend)
+    ordering_fields = ('user__username',)
+    filterset_fields = ('active',)
 
     def get_permissions(self):
         """Assign permissions based on action."""

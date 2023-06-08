@@ -1,17 +1,12 @@
 """Profile views."""
 
-# Django REST Framework
-from rest_framework import mixins, viewsets
-
-# Models
 from apps.users.models import User
-
-# Permissions
-from rest_framework.permissions import IsAuthenticated
 from apps.users.permissions import IsProfileOwner
-
-# Serializers
 from apps.users.serializers import UserModelSerializer
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import mixins, viewsets
+from rest_framework.filters import OrderingFilter
+from rest_framework.permissions import IsAuthenticated
 
 
 class ProfileViewSet(mixins.ListModelMixin,
@@ -26,6 +21,9 @@ class ProfileViewSet(mixins.ListModelMixin,
     queryset = User.objects.filter(verified=True).select_related('profile')
     serializer_class = UserModelSerializer
     lookup_field = 'username'
+    filter_backends = (OrderingFilter, DjangoFilterBackend)
+    ordering_fields = ('username',)
+    filterset_fields = ('username', 'role')
 
     def get_permissions(self):
         """Assign permissions based on action."""

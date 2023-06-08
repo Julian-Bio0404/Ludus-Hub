@@ -2,13 +2,14 @@
 
 Sportfy backend, an application that connects coaches with athletes and allows for managing a sports club.
 
-![](https://img.shields.io/badge/python-v3.11.1-blue)
-![](https://img.shields.io/badge/django-v4.1.4-blue)
-![](https://img.shields.io/badge/fastapi-v0.88.0-blue)
+![](https://img.shields.io/badge/python-v3.11.3-blue)
+![](https://img.shields.io/badge/django-v4.2.1-blue)
+![](https://img.shields.io/badge/fastapi-v0.95.1-blue)
 ![](https://img.shields.io/badge/djangorestframework-v3.14.0-blue)
-![](https://img.shields.io/badge/psycopg2-v2.9.5-blue)
-![](https://img.shields.io/badge/pymongo-v4.3.3-blue)
 ![](https://img.shields.io/badge/celery-v5.2.7-blue)
+![](https://img.shields.io/badge/postgres-v15.2-blue)
+![](https://img.shields.io/badge/pymongo-v4.3.3-blue)
+![](https://img.shields.io/badge/redis-v7.0.11-blue)
 
 
 ## Required software:
@@ -20,6 +21,7 @@ Sportfy backend, an application that connects coaches with athletes and allows f
 to run the project:
 ```bash
 docker-compose -f local.yml build
+docker-compose -f  local.yml run --rm django python manage.py collectstatic
 docker-compose -f local.yml up
 ```
 

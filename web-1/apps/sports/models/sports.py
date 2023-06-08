@@ -1,7 +1,7 @@
 """Sports models."""
 
 from apps.utils.files import sport_directory_path
-from apps.utils.models import SportModel
+from apps.utils.models import SportModel, SportfyModel
 from django.db import models
 
 
@@ -22,3 +22,16 @@ class Sport(SportModel):
 
     def __str__(self) -> str:
         return self.name
+
+
+class Rules(SportfyModel):
+    """Sport Rules model."""
+
+    sport = models.ForeignKey('sports.Sport', on_delete=models.CASCADE)
+
+    modality = models.ForeignKey('sports.Modality', on_delete=models.CASCADE)
+
+    conditions = models.JSONField(default=dict)
+
+    class Meta:
+        unique_together = ('sport', 'modality')

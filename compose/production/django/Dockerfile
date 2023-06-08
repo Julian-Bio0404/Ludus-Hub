@@ -1,4 +1,4 @@
-FROM python:3.11.1
+FROM python:3.11.3
 
 ENV PYTHONUNBUFFERED 1
 
@@ -36,8 +36,6 @@ COPY ./compose/production/django/celery/worker/start /start-celeryworker
 RUN sed -i 's/\r//' /start-celeryworker
 RUN chmod +x /start-celeryworker
 RUN chown django /start-celeryworker
-
-COPY . /web-1
 
 RUN chown -R django /web-1
 

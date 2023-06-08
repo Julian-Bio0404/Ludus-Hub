@@ -1,10 +1,5 @@
 -r ./base.txt
 
-# Debugging
-ipdb==0.13.11
-
-# Tools
+ipdb==0.13.13
 django-extensions==3.2.1
-
-# Code quality
 flake8==6.0.0
