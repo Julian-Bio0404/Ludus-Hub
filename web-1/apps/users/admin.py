@@ -4,6 +4,9 @@ from apps.users.models import Profile, Subscription, User
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
+# Admin configurations
+admin.site.site_header = 'Ludus Hub'
+
 
 class ProfileInline(admin.StackedInline):
     """Profile in-line admin for users."""
