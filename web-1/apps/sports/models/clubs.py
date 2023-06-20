@@ -4,10 +4,10 @@
 from django.db import models
 
 # Utils
-from apps.utils.models import SportfyModel
+from apps.utils.models import BaseAbstractModel
 
 
-class Club(SportfyModel):
+class Club(BaseAbstractModel):
     """Club model."""
 
     name = models.CharField(max_length=150)

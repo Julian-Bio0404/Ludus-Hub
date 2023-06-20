@@ -1,12 +1,12 @@
 """Tournament models."""
 
-from apps.utils.models import SportfyModel, SportModel
+from apps.utils.models import BaseAbstractModel, BaseModel
 from django.db import models
 from djchoices import ChoiceItem, DjangoChoices
 from mptt.models import MPTTModel, TreeForeignKey
 
 
-class Tournament(SportModel):
+class Tournament(BaseModel):
     """Tournament model."""
 
     class Types(DjangoChoices):
@@ -58,7 +58,7 @@ class Tournament(SportModel):
         return self.name
 
 
-class Competitor(SportfyModel):
+class Competitor(BaseAbstractModel):
     """
     Competitor model.
     can store the athlete or a team
@@ -94,7 +94,7 @@ class Competitor(SportfyModel):
         return self.team.name
 
 
-class Rating(SportfyModel):
+class Rating(BaseAbstractModel):
     """Rating model."""
 
     competitor = models.ForeignKey('sports.Competitor', on_delete=models.CASCADE)
@@ -105,7 +105,7 @@ class Rating(SportfyModel):
         return self.score
 
 
-class Draw(SportfyModel):
+class Draw(BaseAbstractModel):
     """Draw model."""
 
     class Types(DjangoChoices):
@@ -135,7 +135,7 @@ class Draw(SportfyModel):
         return f'Draw from {self.tournament.name}'
 
 
-class Round(SportfyModel, MPTTModel):
+class Round(BaseAbstractModel, MPTTModel):
     """Round model."""
 
     class Types(DjangoChoices):
@@ -192,7 +192,7 @@ class Round(SportfyModel, MPTTModel):
         return f'Round {self.order}: {self.type}'
 
 
-class RoundGroup(SportfyModel):
+class RoundGroup(BaseAbstractModel):
     """
     Round Group model.
     Acts as an intermediate model between Round and Group.
@@ -209,7 +209,7 @@ class RoundGroup(SportfyModel):
         return f'Group #{self.order}'
 
 
-class Group(SportfyModel):
+class Group(BaseAbstractModel):
     """
     Group model.
     It is a Group of matches.
@@ -227,7 +227,7 @@ class Group(SportfyModel):
         return self.title
 
 
-class RoundMatch(SportfyModel):
+class RoundMatch(BaseAbstractModel):
     """
     Round Match model.
     Acts as an intermediate model between Round and Match.
@@ -244,7 +244,7 @@ class RoundMatch(SportfyModel):
         return f'Match #{self.order} from {self.round}'
 
 
-class GroupMatch(SportfyModel):
+class GroupMatch(BaseAbstractModel):
     """
     Group Match model.
     Acts as an intermediate model between Group and Match.
@@ -261,7 +261,7 @@ class GroupMatch(SportfyModel):
         return f'Match #{self.order}'
 
 
-class Match(SportfyModel):
+class Match(BaseAbstractModel):
     """Match model."""
 
     class Types(DjangoChoices):
@@ -294,7 +294,7 @@ class Match(SportfyModel):
         return self.title
 
 
-class MatchCompetitor(SportfyModel):
+class MatchCompetitor(BaseAbstractModel):
     """Match Competitor."""
 
     match = models.ForeignKey('sports.Match', on_delete=models.CASCADE)

@@ -1,11 +1,11 @@
 """Plan models."""
 
-from apps.utils.models import SportfyModel
+from apps.utils.models import BaseAbstractModel
 from django.db import models
 from djchoices import ChoiceItem, DjangoChoices
 
 
-class Plan(SportfyModel):
+class Plan(BaseAbstractModel):
     """Plan model."""
 
     class Intervals(DjangoChoices):

@@ -1,18 +1,13 @@
 """User models."""
 
-# Django
+from apps.utils.models import BaseAbstractModel
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 from django.db import models
-
-# Third party utils
 from djchoices import ChoiceItem, DjangoChoices
 
-# Models
-from apps.utils.models import SportfyModel
 
-
-class User(SportfyModel, AbstractUser):
+class User(BaseAbstractModel, AbstractUser):
     """
     User model.
     Extend from Django's Abstract User and add some extra fields.

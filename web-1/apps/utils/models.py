@@ -17,20 +17,23 @@ def custom_slugify(value):
     return slug
 
 
-class BaseSportfyModel(models.Model):
+class BaseAbstractModel(models.Model):
     """
-    Base Sportfy Model.
+    Base Abstract Model.
     Acts as an abstract base class from which every
     other model in the project will inherit. This class provides
     every table with the following atribute:
         + id (UUIDField): Store id in uuid4 format
         + created (DateTime): Store the datetime the object was created.
+        + updated (DateTime): Store the datetime the object was updated.
     """
 
     id = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False)
 
     created = models.DateTimeField('created at', auto_now_add=True)
+
+    updated = models.DateTimeField('updated at', auto_now=True)
 
     class Meta:
         """Meta option."""
@@ -39,29 +42,11 @@ class BaseSportfyModel(models.Model):
         ordering = ['-created']
 
 
-class SportfyModel(BaseSportfyModel):
+class BaseModel(BaseAbstractModel):
     """
-    Sportfy Model.
+    Base Model.
     Acts as an abstract base class inherits from
-    BaseSportfyModel. Extend your models of this class to add
-    the following field:
-        + updated (DateTime): Store the datetime the object was updated.
-    """
-
-    updated = models.DateTimeField('updated at', auto_now=True)
-
-    class Meta:
-        """Meta option."""
-        abstract = True
-        get_latest_by = 'created'
-        ordering = ['-created', '-updated']
-
-
-class SportModel(SportfyModel):
-    """
-    Sport Model.
-    Acts as an abstract base class inherits from
-    SportfyModel. Extend your models of this class to add
+    BaseAbstractModel. Extend your models of this class to add
     the following field:
         + name (Charfield): Store the name the object.
         + slug (SlugField): Store the slug the object.
@@ -80,4 +65,4 @@ class SportModel(SportfyModel):
         """Meta option."""
         abstract = True
         get_latest_by = 'created'
-        ordering = ['-created', '-updated', 'name']
+        ordering = ['-created', 'name']

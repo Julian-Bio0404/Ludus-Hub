@@ -1,10 +1,10 @@
 """Member models."""
 
-from apps.utils.models import BaseSportfyModel, SportfyModel, SportModel
+from apps.utils.models import BaseAbstractModel, BaseModel
 from django.db import models
 
 
-class Member(SportfyModel):
+class Member(BaseAbstractModel):
     """
     Member model.
     A member is intermadiate model between
@@ -25,7 +25,7 @@ class Member(SportfyModel):
         return f'@{self.user.username} at {self.club.slug}'
 
 
-class Invitation(SportfyModel):
+class Invitation(BaseAbstractModel):
     """Invitation model."""
 
     sent_by = models.ForeignKey('users.User', on_delete=models.CASCADE)
@@ -42,7 +42,7 @@ class Invitation(SportfyModel):
         return f'{self.sent_by} from {self.club}: {self.invited}'
 
 
-class Assistance(BaseSportfyModel):
+class Assistance(BaseAbstractModel):
     """Assistance model."""
 
     user = models.ForeignKey('users.User', on_delete=models.CASCADE)
@@ -54,7 +54,7 @@ class Assistance(BaseSportfyModel):
         return f'{self.user.username} at: {self.created}'
 
 
-class Team(SportModel):
+class Team(BaseModel):
     """
     Team model.
     A team is a group of athletes of a club.

@@ -1,11 +1,11 @@
 """Sports models."""
 
 from apps.utils.files import sport_directory_path
-from apps.utils.models import SportModel, SportfyModel
+from apps.utils.models import BaseAbstractModel, BaseModel
 from django.db import models
 
 
-class Sport(SportModel):
+class Sport(BaseModel):
     """Sport model."""
 
     description = models.TextField(blank=True)
@@ -24,7 +24,7 @@ class Sport(SportModel):
         return self.name
 
 
-class Rules(SportfyModel):
+class Rules(BaseAbstractModel):
     """Sport Rules model."""
 
     sport = models.ForeignKey('sports.Sport', on_delete=models.CASCADE)
