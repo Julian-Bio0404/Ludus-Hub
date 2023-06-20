@@ -41,7 +41,7 @@ services:
     build:
       context: .
       dockerfile: ./compose/local/django/Dockerfile
-    image: sportfy_local_django
+    image: ludushub_local_django
     volumes:
       - ./web-1:/web-1
     env_file:
@@ -58,7 +58,7 @@ services:
 
   celeryworker:
     <<: *django
-    image: sportfy_local_celeryworker
+    image: ludushub_local_celeryworker
     volumes:
       - ./web-1:/web-1
     env_file:
