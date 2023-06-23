@@ -24,7 +24,7 @@ class Sport(BaseModel):
         return self.name
 
 
-class Rules(BaseAbstractModel):
+class Rule(BaseAbstractModel):
     """Sport Rules model."""
 
     sport = models.ForeignKey('sports.Sport', on_delete=models.CASCADE)

@@ -3,7 +3,7 @@
 import nested_admin
 from apps.sports.models import (Assistance, Category, Club, Competitor, Draw,
                                 Group, GroupMatch, Invitation, Match, Member,
-                                Modality, Round, RoundGroup, RoundMatch, Rules,
+                                Modality, Round, RoundGroup, RoundMatch, Rule,
                                 Sport, Tag, Team, Tournament)
 from django import forms
 from django.contrib import admin
@@ -181,13 +181,12 @@ class TagInline(admin.TabularInline):
     suit_form_inlines_hide_original = True
 
 
-class RulesInline(admin.TabularInline):
+class RuleInline(admin.TabularInline):
     """Sport Rules inline."""
 
-    model = Rules
+    model = Rule
     suit_classes = 'suit-tab suit-tab-rules'
     extra = 0
-    verbose_name = 'Rules'
     suit_form_inlines_hide_original = True
 
 
@@ -250,7 +249,7 @@ class SportAdmin(admin.ModelAdmin):
 
     search_fields = ['name']
 
-    inlines = [RulesInline, CategoryInline, TagInline]
+    inlines = [RuleInline, CategoryInline, TagInline]
 
     fieldsets = (
         'Details', {
