@@ -27,6 +27,7 @@ class TeamMemberInline(admin.TabularInline):
     extra = 0
     can_delete = False
     verbose_name_plural = 'Team members'
+    suit_classes = 'suit-tab suit-tab-members'
 
     def has_add_permission(self, request, obj=None) -> bool:
         return False
@@ -44,6 +45,7 @@ class MemberInline(admin.TabularInline):
     extra = 0
     can_delete = False
     verbose_name_plural = 'members'
+    suit_classes = 'suit-tab suit-tab-members'
 
     def has_add_permission(self, request, obj=None) -> bool:
         return False
@@ -59,6 +61,7 @@ class TeamInline(admin.TabularInline):
     can_delete = False
     verbose_name_plural = 'teams'
     fields = ['team_name', 'category']
+    suit_classes = 'suit-tab suit-tab-teams'
 
     def team_name(self, obj):
         if obj.pk:
@@ -81,6 +84,7 @@ class InvitationInline(admin.TabularInline):
     extra = 0
     can_delete = False
     verbose_name_plural = 'invitations'
+    suit_classes = 'suit-tab suit-tab-invitations'
 
     def has_add_permission(self, request, obj=None) -> bool:
         return False
@@ -95,6 +99,7 @@ class AssistanceInline(admin.TabularInline):
     extra = 0
     can_delete = False
     verbose_name_plural = 'assistances'
+    suit_classes = 'suit-tab suit-tab-assistances'
 
     def has_add_permission(self, request, obj=None) -> bool:
         return False
@@ -122,6 +127,25 @@ class ClubAdmin(admin.ModelAdmin):
         AssistanceInline
     ]
 
+    fieldsets = (
+        ('Details', {
+            'classes': ('suit-tab', 'suit-tab-details'),
+            'fields': (
+                'name', 'sport', 'description',
+                'city', 'trainer', 'web_site',
+                'photo', 'cover_photo',
+            ),
+        }),
+    )
+
+    suit_form_tabs = (
+        ('details', 'Details'),
+        ('members', 'Members'),
+        ('teams', 'Teams'),
+        ('invitations', 'Invitations'),
+        ('assistances', 'Assistances')
+    )
+
     def has_add_permission(self, request, obj=None) -> bool:
         return False
 
@@ -145,6 +169,18 @@ class TeamAdmin(admin.ModelAdmin):
     search_fields = ['name', 'slug']
 
     inlines = [TeamMemberInline]
+
+    fieldsets = (
+        ('Details', {
+            'classes': ('suit-tab', 'suit-tab-details'),
+            'fields': ('name', 'club', 'category'),
+        }),
+    )
+
+    suit_form_tabs = (
+        ('details', 'Details'),
+        ('members', 'Members')
+    )
 
     def has_delete_permission(self, request, obj=None) -> bool:
         return False
