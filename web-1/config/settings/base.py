@@ -35,6 +35,7 @@ THIRD_PARTY_APPS = [
     'rest_framework.authtoken',
     'django_filters',
     'nested_admin',
+    'django_json_widget',
 ]
 
 LOCAL_APPS = [

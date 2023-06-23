@@ -7,8 +7,10 @@ from apps.sports.models import (Assistance, Category, Club, Competitor, Draw,
                                 Sport, Tag, Team, Tournament)
 from django import forms
 from django.contrib import admin
+from django.db import models
 from django.urls import reverse
 from django.utils.safestring import mark_safe
+from django_json_widget.widgets import JSONEditorWidget
 
 
 class BaseCategoryInline(nested_admin.NestedTabularInline):
@@ -224,6 +226,10 @@ class RuleInline(admin.TabularInline):
     suit_classes = 'suit-tab suit-tab-rules'
     extra = 0
     suit_form_inlines_hide_original = True
+
+    formfield_overrides = {
+        models.JSONField: {'widget': JSONEditorWidget(mode='tree')}
+    }
 
 
 @admin.register(Tag)
