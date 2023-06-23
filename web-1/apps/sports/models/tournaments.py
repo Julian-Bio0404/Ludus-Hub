@@ -204,6 +204,9 @@ class RoundGroup(BaseAbstractModel):
 
     order = models.SmallIntegerField(default=1)
 
+    class Meta:
+        verbose_name = 'Matches Group'
+
     def __str__(self) -> str:
         """Return username and club."""
         return f'Group #{self.order}'
@@ -223,6 +226,9 @@ class Group(BaseAbstractModel):
         through_fields=('group', 'match')
     )
 
+    class Meta:
+        verbose_name_plural = 'Matches Groups'
+
     def __str__(self) -> str:
         return self.title
 
@@ -238,6 +244,9 @@ class RoundMatch(BaseAbstractModel):
     match = models.ForeignKey('sports.Match', on_delete=models.CASCADE)
 
     order = models.SmallIntegerField(default=1)
+
+    class Meta:
+        verbose_name = 'Match'
 
     def __str__(self) -> str:
         """Return username and club."""
@@ -255,6 +264,9 @@ class GroupMatch(BaseAbstractModel):
     match = models.ForeignKey('sports.Match', on_delete=models.CASCADE)
 
     order = models.SmallIntegerField(default=1)
+
+    class Meta:
+        verbose_name = 'Match Group'
 
     def __str__(self) -> str:
         """Return username and club."""
@@ -289,6 +301,9 @@ class Match(BaseAbstractModel):
     )
 
     date = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        verbose_name_plural = 'Matches'
 
     def __str__(self) -> str:
         return self.title

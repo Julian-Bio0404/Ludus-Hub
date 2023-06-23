@@ -14,6 +14,7 @@ from django.utils.safestring import mark_safe
 class BaseCategoryInline(nested_admin.NestedTabularInline):
 
     extra = 0
+    verbose_name = 'Category'
     verbose_name_plural = 'Categories'
     suit_form_inlines_hide_original = True
 
@@ -319,7 +320,7 @@ class GroupMatchInline(nested_admin.NestedTabularInline):
 
     model = GroupMatch
     extra = 0
-    verbose_name_plural = 'Group Matches'
+    verbose_name_plural = 'Matches Group'
     suit_form_inlines_hide_original = True
 
 
@@ -346,7 +347,7 @@ class RoundGroupInline(nested_admin.NestedTabularInline):
 
     model = RoundGroup
     extra = 0
-    verbose_name_plural = 'Groups'
+    verbose_name_plural = 'Matches Groups'
     suit_form_inlines_hide_original = True
     readonly_fields = ['group_matches']
 
@@ -355,7 +356,7 @@ class RoundGroupInline(nested_admin.NestedTabularInline):
             url = reverse('admin:sports_group_change', args=[obj.group.pk])
             return mark_safe('<a href="{}">{}</a>'.format(url, obj.group))
         return '-'
-    group_matches.short_description = 'Group Link'
+    group_matches.short_description = 'Match Group Link'
     group_matches.allow_tags = True
 
 
