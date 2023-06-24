@@ -1,6 +1,6 @@
 {% load suit_forms %}
 <fieldset class="suit-form module aligned {{ fieldset.classes }}">
-    {% if fieldset.name %}<h2>{{ fieldset.name }}</h2>{% endif %}
+    {% comment %} {% if fieldset.name %}<h2>{{ fieldset.name }}</h2>{% endif %} {% endcomment %}
     {% if fieldset.description %}
         <div class="description">{{ fieldset.description|safe }}</div>
     {% endif %}
