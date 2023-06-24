@@ -2,6 +2,7 @@
 
 from apps.users.models import Profile, Subscription, User
 from django.contrib import admin
+from utils.admin import ImageAdminMixin
 
 # Admin configurations
 admin.site.site_header = 'Ludus Hub'
@@ -39,17 +40,18 @@ class SubscriptionInline(admin.StackedInline):
 
 
 @admin.register(User)
-class UserAdmin(admin.ModelAdmin):
+class UserAdmin(admin.ModelAdmin, ImageAdminMixin):
     """User model admin."""
 
     inlines = [ProfileInline, SubscriptionInline]
 
     list_display = [
-        'pk', 'customer_id',
-        'first_name', 'last_name',
-        'username', 'email',
-        'phone_number', 'role',
-        'verified', 'created', 'updated'
+        'pk', 'first_name', 'last_name',
+        'username', 'photo_preview',
+        'cover_photo_preview',
+        'email', 'phone_number',
+        'role', 'verified',
+        'created', 'updated'
     ]
 
     list_display_links = ['pk', 'username']
@@ -100,6 +102,14 @@ class UserAdmin(admin.ModelAdmin):
 
     def has_change_permission(self, request, obj=None) -> bool:
         return False
+
+    def photo_preview(self, obj):
+        self.image = obj.profile.photo
+        return self.render_image(self.image)
+
+    def cover_photo_preview(self, obj):
+        self.image = obj.profile.cover_photo
+        return self.render_image(self.image)
 
 
 @admin.register(Subscription)

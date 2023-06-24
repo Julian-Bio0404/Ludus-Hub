@@ -11,6 +11,7 @@ from django.db import models
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django_json_widget.widgets import JSONEditorWidget
+from utils.admin import ImageAdminMixin
 
 
 class BaseCategoryInline(nested_admin.NestedTabularInline):
@@ -108,13 +109,14 @@ class AssistanceInline(admin.TabularInline):
 
 
 @admin.register(Club)
-class ClubAdmin(admin.ModelAdmin):
+class ClubAdmin(admin.ModelAdmin, ImageAdminMixin):
     """Club model admin."""
 
     list_display = [
         'name', 'slug',
         'description', 'city',
         'trainer', 'web_site',
+        'photo_preview', 'cover_photo_preview',
         'created', 'updated'
     ]
 
@@ -133,7 +135,7 @@ class ClubAdmin(admin.ModelAdmin):
         ('Details', {
             'classes': ('suit-tab', 'suit-tab-details'),
             'fields': (
-                'name', 'sport', 'description',
+                'name', 'slug', 'sport', 'description',
                 'city', 'trainer', 'web_site',
                 'photo', 'cover_photo',
             ),
@@ -278,14 +280,14 @@ class CategoryAdmin(admin.ModelAdmin):
 
 
 @admin.register(Sport)
-class SportAdmin(admin.ModelAdmin):
+class SportAdmin(admin.ModelAdmin, ImageAdminMixin):
     """Sport model admin."""
 
     form = SportForm
 
     list_display = [
         'name', 'slug',
-        'icon', 'created',
+        'icon_preview', 'created',
         'updated'
     ]
 
