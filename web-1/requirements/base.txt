@@ -5,9 +5,10 @@ django-autoslug==1.9.9
 django-choices==1.7.2
 django-environ==0.10.0
 django-filter==23.2
+django-json-widget==1.1.1
 django-mptt==0.14.0
 django-nested-admin==4.0.2
-django-suit==2.0a2  # For django >=4.0
+django-suit==2.0a2
 djangorestframework==3.14.0
 factory-boy==3.2.1
 Faker==18.6.2

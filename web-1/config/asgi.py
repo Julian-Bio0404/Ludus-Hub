@@ -1,4 +1,4 @@
-"""ASGI config for sportfy project."""
+"""ASGI config for project."""
 
 import os
 

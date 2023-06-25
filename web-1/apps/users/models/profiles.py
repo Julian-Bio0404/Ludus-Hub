@@ -1,16 +1,11 @@
 """Profile models"""
 
-# Django
+from apps.utils.files import user_directory_path
+from apps.utils.models import BaseAbstractModel
 from django.db import models
 
-# Models
-from apps.utils.models import SportfyModel
 
-# Utils
-from apps.utils.files import user_directory_path
-
-
-class Profile(SportfyModel):
+class Profile(BaseAbstractModel):
     """
     Profile model.
     Model One to one with User model.

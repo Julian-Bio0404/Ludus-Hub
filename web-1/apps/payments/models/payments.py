@@ -2,13 +2,13 @@
 
 import re
 
-from apps.utils.models import SportfyModel
+from apps.utils.models import BaseAbstractModel
 from django.core.validators import RegexValidator
 from django.db import models
 from djchoices import ChoiceItem, DjangoChoices
 
 
-class Price(SportfyModel):
+class Price(BaseAbstractModel):
     """Price model"""
 
     class Currency(DjangoChoices):
@@ -31,7 +31,7 @@ class Price(SportfyModel):
         return f'{self.amount} - {self.currency}'
 
 
-class Card(SportfyModel):
+class Card(BaseAbstractModel):
     """Customer Card model."""
 
     user = models.ForeignKey('users.User', on_delete=models.CASCADE)

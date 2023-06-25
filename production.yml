@@ -36,7 +36,7 @@ services:
     build:
       context: .
       dockerfile: ./compose/production/django/Dockerfile
-    image: sportfy_production_django
+    image: ludushub_production_django
     volumes:
       - ./web-1:/web-1
     env_file:
@@ -50,7 +50,7 @@ services:
 
   celeryworker:
     <<: *django
-    image: sportfy_production_celeryworker
+    image: ludushub_production_celeryworker
     volumes:
       - ./web-1:/web-1
     env_file:
@@ -64,7 +64,7 @@ services:
   
   flower:
     <<: *django
-    image: sportfy_production_flower
+    image: ludushub_production_flower
     env_file:
       - ./.env
     ports:

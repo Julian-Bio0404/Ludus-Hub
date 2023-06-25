@@ -1,12 +1,12 @@
 """Categories models."""
 
-from apps.utils.models import SportModel, custom_slugify
+from apps.utils.models import BaseModel, custom_slugify
 from autoslug import AutoSlugField
 from django.db import models
 from djchoices import ChoiceItem, DjangoChoices
 
 
-class Modality(SportModel):
+class Modality(BaseModel):
     """Modality model."""
 
     class Meta:
@@ -16,7 +16,7 @@ class Modality(SportModel):
         return self.name
 
 
-class Category(SportModel):
+class Category(BaseModel):
     """Category model."""
 
     class Genders(DjangoChoices):
@@ -51,7 +51,7 @@ class Category(SportModel):
         return f'{self.name}-{self.gender}'
 
 
-class Tag(SportModel):
+class Tag(BaseModel):
     """Tag model."""
 
     def __str__(self) -> str:

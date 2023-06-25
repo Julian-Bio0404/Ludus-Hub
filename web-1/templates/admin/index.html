@@ -1,0 +1,91 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static "admin/css/dashboard.css" %}">{% endblock %}
+
+{% block coltype %}colMS{% endblock %}
+
+{% block bodyclass %}{{ block.super }} dashboard{% endblock %}
+
+{% block breadcrumbs %}{% endblock %}
+
+{% block nav-sidebar %}{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <div class="shortcuts module">
+    <div>
+      <div>
+        <h4>{% translate 'Primary actions' %}</h4>   
+        <div class="row">
+          <div class="col-lg-6">
+            <div class="card card-secondary card-full-height">
+              <h4 class="card-header">{% translate 'Sports' %}</h4>
+              <div class="card-block">
+                <a href="{% url 'admin:index' %}sports/category/" class="btn btn-block btn-secondary">🔶</br>Categories</a>
+                <a href="{% url 'admin:index' %}sports/modality/" class="btn btn-block btn-secondary">🔷</br>Modalities</a>
+                <a href="{% url 'admin:index' %}sports/tag/" class="btn btn-block btn-secondary">🏷️</br>Tags</a>
+                <a href="{% url 'admin:index' %}sports/sport/" class="btn btn-block btn-secondary">🤺</br>Sports</a>
+                <a href="{% url 'admin:index' %}sports/club/" class="btn btn-block btn-secondary">⚜️</br>Clubs</a>
+                <a href="{% url 'admin:index' %}sports/team/" class="btn btn-block btn-secondary">🤼</br>Teams</a>
+                <a href="{% url 'admin:index' %}sports/tournament/" class="btn btn-block btn-secondary">🏆</br>Tournaments</a>
+                <a href="{% url 'admin:index' %}sports/match/" class="btn btn-block btn-secondary">⚔️</br>Matches</a>
+                <a href="{% url 'admin:index' %}sports/group/" class="btn btn-block btn-secondary">⚔️</br>Matches Groups</a>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-6">
+            <div class="card card-secondary card-full-height">
+                <h4 class="card-header">{% translate 'Payments' %}</h4>
+                <div class="card-block">
+                  <a href="{% url 'admin:index' %}payments/price/" class="btn btn-block btn-secondary">💲</br>Prices</a>
+                  <a href="{% url 'admin:index' %}payments/plan/" class="btn btn-block btn-secondary">📅</br>Plans</a>
+                </div>
+            </div>
+            <div class="card card-secondary card-full-height">
+              <h4 class="card-header">{% translate 'Users' %}</h4>
+              <div class="card-block">
+                <a href="{% url 'admin:index' %}users/user/" class="btn btn-block btn-secondary">👥</br>Users</a>
+                <a href="{% url 'admin:index' %}users/subscription/" class="btn btn-block btn-secondary">🎫</br>Subscriptions</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% comment %} {% include "admin/app_list.html" with app_list=app_list show_changelinks=True %} {% endcomment %}
+</div>
+{% endblock %}
+
+{% block sidebar %}
+<div id="content-related">
+    <div class="module" id="recent-actions-module">
+        <h2>{% translate 'Recent actions' %}</h2>
+        <h3>{% translate 'My actions' %}</h3>
+            {% load log %}
+            {% get_admin_log 10 as admin_log for_user user %}
+            {% if not admin_log %}
+            <p>{% translate 'None available' %}</p>
+            {% else %}
+            <ul class="actionlist">
+            {% for entry in admin_log %}
+            <li class="{% if entry.is_addition %}addlink{% endif %}{% if entry.is_change %}changelink{% endif %}{% if entry.is_deletion %}deletelink{% endif %}">
+                {% if entry.is_deletion or not entry.get_admin_url %}
+                    {{ entry.object_repr }}
+                {% else %}
+                    <a href="{{ entry.get_admin_url }}">{{ entry.object_repr }}</a>
+                {% endif %}
+                <br>
+                {% if entry.content_type %}
+                    <span class="mini quiet">{% filter capfirst %}{{ entry.content_type.name }}{% endfilter %}</span>
+                {% else %}
+                    <span class="mini quiet">{% translate 'Unknown content' %}</span>
+                {% endif %}
+            </li>
+            {% endfor %}
+            </ul>
+            {% endif %}
+    </div>
+</div>
+{% endblock %}

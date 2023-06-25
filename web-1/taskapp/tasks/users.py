@@ -2,10 +2,7 @@
 
 from __future__ import absolute_import, unicode_literals
 
-# Utils
 from apps.utils.email import send_email, token_generation
-
-# Celery
 from taskapp.celery import app
 
 

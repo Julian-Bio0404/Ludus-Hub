@@ -1,4 +1,4 @@
-"""WSGI config for sportfy project."""
+"""WSGI config for project."""
 
 import os
 

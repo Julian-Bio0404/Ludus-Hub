@@ -1,10 +1,10 @@
 """Subscription models."""
 
-from apps.utils.models import SportfyModel
+from apps.utils.models import BaseAbstractModel
 from django.db import models
 
 
-class Subscription(SportfyModel):
+class Subscription(BaseAbstractModel):
     """Subscription model."""
 
     user = models.OneToOneField('users.User', on_delete=models.CASCADE)

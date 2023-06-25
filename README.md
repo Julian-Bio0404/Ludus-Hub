@@ -1,6 +1,6 @@
-# Sportfy
+# Ludus-Hub
 
-Sportfy backend, an application that connects coaches with athletes and allows for managing a sports club.
+Ludus-Hub backend, an application that connects coaches with athletes and allows for managing a sports club and sports events.
 
 ![](https://img.shields.io/badge/python-v3.11.3-blue)
 ![](https://img.shields.io/badge/django-v4.2.1-blue)

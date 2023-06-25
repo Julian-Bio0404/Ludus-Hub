@@ -69,7 +69,7 @@
     </div>
     {% endblock %}
     <!-- END Header -->
-    {% block nav-breadcrumbs %}
+    {% comment %} {% block nav-breadcrumbs %}
       <nav aria-label="{% translate 'Breadcrumbs' %}">
         {% block breadcrumbs %}
           <div class="breadcrumbs">
@@ -78,7 +78,7 @@
           </div>
         {% endblock %}
       </nav>
-    {% endblock %}
+    {% endblock %} {% endcomment %}
     {% endif %}
 
     <div class="main" id="main">
@@ -99,7 +99,7 @@
         <div id="content" class="{% block coltype %}colM{% endblock %}">
           {% block pretitle %}{% endblock %}
           {% block content_title %}{% if title %}<h1>{{ title }}</h1>{% endif %}{% endblock %}
-          {% block content_subtitle %}{% if subtitle %}<h2>{{ subtitle }}</h2>{% endif %}{% endblock %}
+          {% block content_subtitle %}{% if subtitle %}<h4>{{ subtitle }}</h4>{% endif %}{% endblock %}
           {% block content %}
             {% block object-tools %}{% endblock %}
             {{ content }}

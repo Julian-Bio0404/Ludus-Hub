@@ -21,6 +21,7 @@ services:
     env_file: ./.env
     ports:
       - "5432:5432"
+    container_name: postgres
 
   mongodb:
     image: mongo:latest
@@ -29,6 +30,7 @@ services:
     env_file: ./.env
     ports:
       - '27017:27017'
+    container_name: mongodb
 
   redis:
     image: redis:7.0.11-alpine
@@ -36,12 +38,13 @@ services:
       resources:
         limits:
           memory: 200M
+    container_name: redis
 
   django: &django
     build:
       context: .
       dockerfile: ./compose/local/django/Dockerfile
-    image: sportfy_local_django
+    image: ludushub_local_django
     volumes:
       - ./web-1:/web-1
     env_file:
@@ -55,10 +58,11 @@ services:
     depends_on:
       - postgres
     command: /start
+    container_name: django
 
   celeryworker:
     <<: *django
-    image: sportfy_local_celeryworker
+    image: ludushub_local_celeryworker
     volumes:
       - ./web-1:/web-1
     env_file:
@@ -72,6 +76,7 @@ services:
       - redis
       - django
     command: /start-celeryworker
+    container_name: celeryworker
 
   fastapi:
     build:
@@ -88,3 +93,4 @@ services:
     ports:
       - "8001:8001"
     command: /start
+    container_name: fastapi
