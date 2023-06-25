@@ -2,7 +2,7 @@
 
 from apps.users.models import Profile, Subscription, User
 from django.contrib import admin
-from utils.admin import ImageAdminMixin
+from apps.utils.admin import ImageAdminMixin
 
 # Admin configurations
 admin.site.site_header = 'Ludus Hub'

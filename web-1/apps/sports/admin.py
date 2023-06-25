@@ -11,7 +11,7 @@ from django.db import models
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django_json_widget.widgets import JSONEditorWidget
-from utils.admin import ImageAdminMixin
+from apps.utils.admin import ImageAdminMixin
 
 
 class BaseCategoryInline(nested_admin.NestedTabularInline):
