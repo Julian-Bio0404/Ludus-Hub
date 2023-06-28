@@ -4,13 +4,14 @@ volumes:
   local_postgres_data: {}
   local_postgres_data_backups: {}
   local_mongo_data: {}
+  local_elasticsearch_data: {}
 
 services:
   postgres:
     build:
       context: .
       dockerfile: ./compose/production/postgres/Dockerfile
-    image: sportfy_production_postgres
+    image: ludushub_production_postgres
     deploy:
       resources:
         limits:
@@ -39,6 +40,17 @@ services:
         limits:
           memory: 200M
     container_name: redis
+
+  elasticsearch:
+    image: elasticsearch:7.17.10
+    volumes:
+      - local_elasticsearch_data:/usr/share/elasticsearch/data
+    environment:
+      - discovery.type=single-node
+    ports:
+      - '9200:9200'
+      - '9300:9300'
+    container_name: elasticsearch
 
   django: &django
     build:
