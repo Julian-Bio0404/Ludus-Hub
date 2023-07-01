@@ -1,13 +1,13 @@
-"""Club documents."""
+"""Tournment documents."""
 
 from django_elasticsearch_dsl import Document, fields
-from apps.sports.models import Club, Sport
+from apps.sports.models import Sport, Tournament
 from django_elasticsearch_dsl.registries import registry
 
 
 @registry.register_document
-class ClubDocument(Document):
-    """Club elasticsearch document."""
+class TournamentDocument(Document):
+    """Tournament elasticsearch document."""
 
     sport = fields.ObjectField(properties={
         'name': fields.TextField(),
@@ -17,27 +17,27 @@ class ClubDocument(Document):
 
     def get_queryset(self):
         """Improve performance we can select related in one sql request."""
-        query = super(ClubDocument, self).get_queryset().select_related('sport')
-        return query
+        query = super(TournamentDocument, self).get_queryset()
+        return query.select_related('sport')
 
     def get_instances_from_related(self, related_instance):
         if isinstance(related_instance, Sport):
-            return related_instance.club_set.all()
+            return related_instance.tournament_set.all()
 
     class Index:
-        name = 'clubs'
+        name = 'tournaments'
         settings = {
             'number_of_shards': 1,
             'number_of_replicas': 0
         }
 
     class Django:
-        model = Club
+        model = Tournament
         related_models = (Sport,)
         fields = (
             'name',
             'slug',
-            'photo',
-            'cover_photo',
+            'type',
+            'level',
             'city'
         )
