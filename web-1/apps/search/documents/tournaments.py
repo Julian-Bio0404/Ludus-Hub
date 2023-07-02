@@ -36,7 +36,6 @@ class TournamentDocument(Document):
         related_models = (Sport,)
         fields = (
             'name',
-            'slug',
             'type',
             'level',
             'city'

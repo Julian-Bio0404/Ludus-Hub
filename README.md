@@ -30,6 +30,11 @@ to create a superuser:
 docker-compose -f local.yml run --rm django python manage.py createsuperuser
 ```
 
+to Recreate and repopulate the indices in Elasticsearch:
+```bash
+docker-compose -f local.yml run --rm django python manage.py search_index --rebuild -f --models users.User sports.Club sports.Tournament --parallel --refresh
+```
+
 to run the tests:
 - All tests
   ```bash
