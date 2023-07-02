@@ -3,7 +3,6 @@ from django_elasticsearch_dsl_drf.filter_backends import (
     DefaultOrderingFilterBackend,
     FacetedSearchFilterBackend,
     FilteringFilterBackend,
-    NestedFilteringFilterBackend,
     OrderingFilterBackend,
     SearchFilterBackend,
     SuggesterFilterBackend,
@@ -26,7 +25,6 @@ class ClubDocumentViewSet(DocumentViewSet):
         FilteringFilterBackend,
         OrderingFilterBackend,
         SearchFilterBackend,
-        NestedFilteringFilterBackend,
         DefaultOrderingFilterBackend,
         SuggesterFilterBackend,
     ]
