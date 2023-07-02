@@ -4,7 +4,7 @@ from django_elasticsearch_dsl_drf.serializers import DocumentSerializer
 from apps.search.documents import TournamentDocument
 
 
-class ClubDocumentSerializer(DocumentSerializer):
+class TournamentDocumentSerializer(DocumentSerializer):
     """Tournament document Serializer."""
 
     class Meta:
