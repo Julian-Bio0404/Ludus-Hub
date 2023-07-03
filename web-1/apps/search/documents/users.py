@@ -1,7 +1,7 @@
 """User documents."""
 
+from apps.users.models import Profile, User
 from django_elasticsearch_dsl import Document, fields
-from apps.users.models import User, Profile
 from django_elasticsearch_dsl.registries import registry
 
 
@@ -9,11 +9,16 @@ from django_elasticsearch_dsl.registries import registry
 class UserDocument(Document):
     """User elasticsearch document."""
 
-    profile = fields.ObjectField(properties={
-        'photo': fields.FileField(),
-        'cover_photo': fields.FileField(),
-        'about': fields.TextField()
-    })
+    profile = fields.ObjectField(
+        properties={
+            'id': fields.KeywordField(),
+            'photo': fields.FileField(),
+            'cover_photo': fields.FileField(),
+            'about': fields.TextField()
+        }
+    )
+
+    role = fields.KeywordField()
 
     def get_queryset(self):
         """Improve performance we can select related in one sql request."""
@@ -35,8 +40,10 @@ class UserDocument(Document):
         model = User
         related_models = (Profile,)
         fields = (
+            'id',
             'first_name',
             'last_name',
             'username',
-            'role'
+            'created',
+            'updated'
         )

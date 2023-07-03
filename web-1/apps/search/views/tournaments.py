@@ -1,17 +1,14 @@
-from django_elasticsearch_dsl_drf.constants import SUGGESTER_COMPLETION
-from django_elasticsearch_dsl_drf.filter_backends import (
-    DefaultOrderingFilterBackend,
-    FacetedSearchFilterBackend,
-    FilteringFilterBackend,
-    OrderingFilterBackend,
-    SearchFilterBackend,
-    SuggesterFilterBackend,
-)
-from django_elasticsearch_dsl_drf.pagination import LimitOffsetPagination
-from django_elasticsearch_dsl_drf.viewsets import DocumentViewSet
+"""Tournament elasticsearch views."""
 
 from apps.search.documents import TournamentDocument
 from apps.search.serializers import TournamentDocumentSerializer
+from django_elasticsearch_dsl_drf.constants import SUGGESTER_COMPLETION
+from django_elasticsearch_dsl_drf.filter_backends import (
+    DefaultOrderingFilterBackend, FacetedSearchFilterBackend,
+    FilteringFilterBackend, OrderingFilterBackend, SearchFilterBackend,
+    SuggesterFilterBackend)
+from django_elasticsearch_dsl_drf.pagination import LimitOffsetPagination
+from django_elasticsearch_dsl_drf.viewsets import DocumentViewSet
 
 
 class TournamentDocumentViewSet(DocumentViewSet):

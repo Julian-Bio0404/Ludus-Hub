@@ -1,7 +1,7 @@
 """Club documents."""
 
-from django_elasticsearch_dsl import Document, fields
 from apps.sports.models import Club, Sport
+from django_elasticsearch_dsl import Document, fields
 from django_elasticsearch_dsl.registries import registry
 
 
@@ -9,11 +9,16 @@ from django_elasticsearch_dsl.registries import registry
 class ClubDocument(Document):
     """Club elasticsearch document."""
 
-    sport = fields.ObjectField(properties={
-        'name': fields.TextField(),
-        'slug': fields.TextField(),
-        'icon': fields.FileField()
-    })
+    name = fields.KeywordField()
+
+    sport = fields.ObjectField(
+        properties={
+            'id': fields.KeywordField(),
+            'name': fields.KeywordField(),
+            'slug': fields.TextField(),
+            'icon': fields.FileField()
+        }
+    )
 
     def get_queryset(self):
         """Improve performance we can select related in one sql request."""
@@ -35,9 +40,11 @@ class ClubDocument(Document):
         model = Club
         related_models = (Sport,)
         fields = (
-            'name',
+            'id',
             'slug',
             'photo',
             'cover_photo',
-            'city'
+            'city',
+            'created',
+            'updated'
         )

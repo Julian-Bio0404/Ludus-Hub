@@ -1,7 +1,7 @@
 """Club document serializers."""
 
-from django_elasticsearch_dsl_drf.serializers import DocumentSerializer
 from apps.search.documents import ClubDocument
+from django_elasticsearch_dsl_drf.serializers import DocumentSerializer
 
 
 class ClubDocumentSerializer(DocumentSerializer):
@@ -17,5 +17,7 @@ class ClubDocumentSerializer(DocumentSerializer):
             'photo',
             'cover_photo',
             'city',
-            'sport'
+            'sport',
+            'created',
+            'updated'
         )

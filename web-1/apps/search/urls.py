@@ -1,7 +1,8 @@
 """Search URLs."""
 
+from apps.search.views import (ClubDocumentViewSet, TournamentDocumentViewSet,
+                               UserDocumentViewSet)
 from django.urls import path
-from apps.search.views import ClubDocumentViewSet, TournamentDocumentViewSet, UserDocumentViewSet
 
 urlpatterns = [
     path(

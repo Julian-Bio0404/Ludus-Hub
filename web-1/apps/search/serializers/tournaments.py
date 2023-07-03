@@ -1,7 +1,7 @@
 """Tournament document serializers."""
 
-from django_elasticsearch_dsl_drf.serializers import DocumentSerializer
 from apps.search.documents import TournamentDocument
+from django_elasticsearch_dsl_drf.serializers import DocumentSerializer
 
 
 class TournamentDocumentSerializer(DocumentSerializer):

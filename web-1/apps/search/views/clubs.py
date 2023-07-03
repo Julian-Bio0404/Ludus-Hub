@@ -1,17 +1,14 @@
-from django_elasticsearch_dsl_drf.constants import SUGGESTER_COMPLETION
-from django_elasticsearch_dsl_drf.filter_backends import (
-    DefaultOrderingFilterBackend,
-    FacetedSearchFilterBackend,
-    FilteringFilterBackend,
-    OrderingFilterBackend,
-    SearchFilterBackend,
-    SuggesterFilterBackend,
-)
-from django_elasticsearch_dsl_drf.pagination import LimitOffsetPagination
-from django_elasticsearch_dsl_drf.viewsets import DocumentViewSet
+"""Club elasticsearch views."""
 
 from apps.search.documents import ClubDocument
 from apps.search.serializers import ClubDocumentSerializer
+from django_elasticsearch_dsl_drf.constants import SUGGESTER_COMPLETION
+from django_elasticsearch_dsl_drf.filter_backends import (
+    DefaultOrderingFilterBackend, FacetedSearchFilterBackend,
+    FilteringFilterBackend, OrderingFilterBackend, SearchFilterBackend,
+    SuggesterFilterBackend)
+from django_elasticsearch_dsl_drf.pagination import LimitOffsetPagination
+from django_elasticsearch_dsl_drf.viewsets import DocumentViewSet
 
 
 class ClubDocumentViewSet(DocumentViewSet):
@@ -30,7 +27,7 @@ class ClubDocumentViewSet(DocumentViewSet):
     ]
     pagination_class = LimitOffsetPagination
 
-    search_fields = ('name',)
+    search_fields = ('name', 'slug')
 
     filter_fields = {
         'id': None,
