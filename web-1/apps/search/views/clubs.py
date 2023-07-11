@@ -27,11 +27,14 @@ class ClubDocumentViewSet(DocumentViewSet):
     ]
     pagination_class = LimitOffsetPagination
 
-    search_fields = ('name', 'slug')
+    search_fields = {
+        'name': {'boost': 3},
+        'slug': {'boost': 4},
+        'city': {'boost': 2}
+    }
 
     filter_fields = {
         'id': None,
-        'city': 'city',
         'sport': 'sport.name'
     }
 
@@ -41,7 +44,7 @@ class ClubDocumentViewSet(DocumentViewSet):
     }
 
     # Default ordering
-    ordering = ('id',)
+    ordering = ('_score', 'id',)
 
     suggester_fields = {
         'name_suggest': {

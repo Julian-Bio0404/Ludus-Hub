@@ -27,11 +27,11 @@ class UserDocumentViewSet(DocumentViewSet):
     ]
     pagination_class = LimitOffsetPagination
 
-    search_fields = (
-        'first_name',
-        'last_name',
-        'username',
-    )
+    search_fields = {
+        'first_name': {'boost': 2},
+        'last_name': {'boost': 2},
+        'username': {'boost': 3},
+    }
 
     filter_fields = {
         'id': None,
@@ -46,7 +46,7 @@ class UserDocumentViewSet(DocumentViewSet):
     }
 
     # Default ordering
-    ordering = ('id',)
+    ordering = ('_score', 'id',)
 
     suggester_fields = {
         'first_name_suggest': {

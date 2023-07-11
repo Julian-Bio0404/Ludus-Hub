@@ -27,12 +27,12 @@ class TournamentDocumentViewSet(DocumentViewSet):
     ]
     pagination_class = LimitOffsetPagination
 
-    search_fields = (
-        'name',
-        'type',
-        'city',
-        'sport.name',
-    )
+    search_fields = {
+        'name': {'boost': 4},
+        'type': {'boost': 2},
+        'city': {'boost': 3},
+        'sport.name': {'boost': 3},
+    }
 
     filter_fields = {
         'id': None,
@@ -48,7 +48,7 @@ class TournamentDocumentViewSet(DocumentViewSet):
     }
 
     # Default ordering
-    ordering = ('id',)
+    ordering = ('_score', 'id',)
 
     suggester_fields = {
         'sport_suggest': {
