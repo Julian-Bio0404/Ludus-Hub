@@ -1,19 +1,9 @@
 import pytest
-
-# Django
-from django.urls import reverse
-
-# Django REST Framework
-from rest_framework import status
-
-# Models
 from apps.users.models import Profile, User
-
-# Factories
 from apps.users.tests.factories import UserFactory
-
-# Utils
 from apps.utils.email import token_generation
+from django.urls import reverse
+from rest_framework import status
 
 pytestmark = pytest.mark.django_db
 
@@ -235,7 +225,6 @@ class TestUserCase:
         url = reverse(
             'users:users-token-update-email', args=[user.username])
         response = api_client.post(url, body)
-        print(response.content)
         assert response.status_code == status.HTTP_200_OK
 
     def test_update_user_email(self, athlete_client):
