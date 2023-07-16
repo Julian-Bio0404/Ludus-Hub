@@ -14,3 +14,13 @@ ANYMAIL = {
 
 # Gunicorn
 INSTALLED_APPS += ['gunicorn']
+
+# Elasticsearch
+ELASTICSEARCH_DEFAULT_ALIAS_HOST = env('ELASTICSEARCH_DEFAULT_ALIAS_HOST', default='elasticsearch:9200')
+ELASTIC_SEARCH_INDEX_PREFIX = ''
+ELASTICSEARCH_DSL = {
+    'default': {
+        'hosts': ELASTICSEARCH_DEFAULT_ALIAS_HOST,
+        'http_auth': (env('ELASTIC_USER'), env('ELASTIC_PASSWORD')),
+    },
+}

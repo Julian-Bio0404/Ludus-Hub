@@ -36,12 +36,15 @@ THIRD_PARTY_APPS = [
     'django_filters',
     'nested_admin',
     'django_json_widget',
+    'django_elasticsearch_dsl',
+    'django_elasticsearch_dsl_drf',
 ]
 
 LOCAL_APPS = [
     'apps.users',
     'apps.sports',
-    'apps.payments'
+    'apps.payments',
+    'apps.search',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -164,3 +167,14 @@ CELERY_TASK_ALWAYS_EAGER = True
 CELERY_TASK_EAGER_PROPAGATES = True
 
 STRIPE_API_KEY = env('STRIPE_API_KEY', default='')
+
+# Elasticsearch
+ELASTICSEARCH_DEFAULT_ALIAS_HOST = env('ELASTICSEARCH_DEFAULT_ALIAS_HOST', default='elasticsearch:9200')
+ELASTIC_SEARCH_INDEX_PREFIX = ''
+ELASTICSEARCH_DSL = {
+    'default': {
+        'hosts': ELASTICSEARCH_DEFAULT_ALIAS_HOST
+    },
+}
+ELASTIC_SEARCH_INDEX_PREFIX = ''
+ELASTICSEARCH_DSL_PARALLEL = True

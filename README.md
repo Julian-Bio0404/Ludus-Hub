@@ -9,6 +9,7 @@ Ludus-Hub backend, an application that connects coaches with athletes and allows
 ![](https://img.shields.io/badge/celery-v5.2.7-blue)
 ![](https://img.shields.io/badge/postgres-v15.2-blue)
 ![](https://img.shields.io/badge/pymongo-v4.3.3-blue)
+![](https://img.shields.io/badge/elasticsearch-v7.17.10-blue)
 ![](https://img.shields.io/badge/redis-v7.0.11-blue)
 
 
@@ -19,6 +20,9 @@ Ludus-Hub backend, an application that connects coaches with athletes and allows
 ## Run
 
 to run the project:
+
+create an .env file and set the variables of the .env_example file
+
 ```bash
 docker-compose -f local.yml build
 docker-compose -f  local.yml run --rm django python manage.py collectstatic
@@ -28,6 +32,11 @@ docker-compose -f local.yml up
 to create a superuser:
 ```bash
 docker-compose -f local.yml run --rm django python manage.py createsuperuser
+```
+
+to Recreate and repopulate the indices in Elasticsearch:
+```bash
+docker-compose -f local.yml run --rm django python manage.py search_index --rebuild -f --models users.User sports.Club sports.Tournament --parallel --refresh
 ```
 
 to run the tests:
