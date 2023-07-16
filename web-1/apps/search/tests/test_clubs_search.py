@@ -9,6 +9,9 @@ class TestClubSearchCase:
 
     def test_list_club_search(self, athlete_client, api_client):
         url = reverse('search:clubs-search')
+
+        # Check authentication permission
+        response = api_client.get(url)
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
         response = athlete_client.get(url)
-        # content = json.loads(response.content)
         assert response.status_code == status.HTTP_200_OK

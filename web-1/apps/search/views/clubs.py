@@ -9,6 +9,7 @@ from django_elasticsearch_dsl_drf.filter_backends import (
     SuggesterFilterBackend)
 from django_elasticsearch_dsl_drf.pagination import LimitOffsetPagination
 from django_elasticsearch_dsl_drf.viewsets import DocumentViewSet
+from rest_framework.permissions import IsAuthenticated
 
 
 class ClubDocumentViewSet(DocumentViewSet):
@@ -61,3 +62,7 @@ class ClubDocumentViewSet(DocumentViewSet):
             'enabled': True,
         }
     }
+
+    def get_permissions(self):
+        permissions = [IsAuthenticated]
+        return [p() for p in permissions]
