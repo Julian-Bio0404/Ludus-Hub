@@ -1,9 +1,10 @@
 """Tournament serializers."""
 
-from apps.sports.models import Competitor, Sport, Team, Tournament
+from apps.sports.models import Competitor, Draw, Sport, Team, Tournament
 from apps.sports.serializers import SportModelSerializer, TeamModelSerializer
 from apps.users.models import User
 from apps.users.serializers import UserModelSerializer
+from django.db.models import Q
 from rest_framework import serializers
 
 
@@ -151,3 +152,47 @@ class CompetitorModelSerializer(serializers.ModelSerializer):
         ]
 
         read_only_fields = ['athlete', 'team', 'category']
+
+
+class CreateDrawSerializer(serializers.Serializer):
+    """
+    Create draw serializer.
+    Handle the creation of tournament draws.
+    """
+
+    category_id = serializers.UUIDField()
+    type = serializers.ChoiceField(choices=Draw.Types.choices)
+    initial_seeds = serializers.ListField(child=serializers.CharField(), required=False)
+
+    def validate(self, data):
+        category_id = data.get('category_id')
+        initial_seeds = data.get('initial_seeds')
+        tournament = self.context['tournament']
+
+        category = tournament.categories.filter(id=category_id).last()
+        if not category:
+            raise serializers.ValidationError('The category does not exist')
+        self.context['category'] = category
+
+        competitor_seeds = []
+        if initial_seeds:
+            for seed in initial_seeds:
+                competitor = tournament.competitor_set.filter(
+                    Q(athlete__username=seed) | Q(team__slug=seed),
+                    category__id=category_id
+                ).last()
+                if not competitor:
+                    raise serializers.ValidationError(
+                        f'The competitor {seed} does not exist for this category')
+                competitor_seeds.append(competitor)
+
+        if competitor_seeds:
+            self.context['competitor_seeds'] = competitor_seeds
+
+    def create(self, data):
+        draw = Draw.objects.create(
+            type=data['type'],
+            category=self.context['category'],
+            tournament=self.context['tournament']
+        )
+        return draw
