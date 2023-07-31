@@ -25,6 +25,11 @@ class Category(BaseModel):
         female = ChoiceItem('female', 'Female')
         mixed = ChoiceItem('mixed', 'Mixed')
 
+    class Types(DjangoChoices):
+        """Category Types."""
+        individual = ChoiceItem('individual', 'Individual')
+        team = ChoiceItem('team', 'Team')
+
     slug = AutoSlugField(
         populate_from='name',
         unique_with=['name', 'gender', 'modality'],
@@ -39,6 +44,12 @@ class Category(BaseModel):
         on_delete=models.CASCADE,
         null=True,
         blank=True
+    )
+
+    type = models.CharField(
+        choices=Types.choices,
+        max_length=10,
+        default=Types.individual
     )
 
     class Meta:
