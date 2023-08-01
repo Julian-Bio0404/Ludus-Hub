@@ -265,17 +265,17 @@ class CategoryAdmin(admin.ModelAdmin):
     list_display = [
         'name', 'slug',
         'modality', 'gender',
-        'created'
+        'type', 'created'
     ]
 
     search_fields = ['name']
 
-    list_filter = ['modality', 'gender']
+    list_filter = ['modality', 'gender', 'type']
 
     fieldsets = (
         None, {
             'classes': ('suit-tab', 'suit-tab-general'),
-            'fields': ('modality', 'gender', 'name'),
+            'fields': ('modality', 'gender', 'name', 'type'),
         }),
 
 
