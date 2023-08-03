@@ -196,3 +196,15 @@ class CreateDrawSerializer(serializers.Serializer):
             tournament=self.context['tournament']
         )
         return draw
+
+
+class DrawModelSerializer(serializers.ModelSerializer):
+    """Draw model serializer."""
+
+    class Meta:
+        """Meta options."""
+        model = Draw
+        fields = [
+            'id', 'type', 'category',
+            'created', 'updated'
+        ]

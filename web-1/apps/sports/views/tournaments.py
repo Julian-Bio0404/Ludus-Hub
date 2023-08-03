@@ -4,7 +4,9 @@ from apps.sports.models import Tournament
 from apps.sports.permissions import HasCompetitors, IsTournamentCreator
 from apps.sports.serializers import (AddCompetitorSerializer,
                                      CompetitorModelSerializer,
+                                     CreateDrawSerializer,
                                      CreateTournamentSerializer,
+                                     DrawModelSerializer,
                                      TournamentModelSerializer)
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, status, viewsets
@@ -85,3 +87,35 @@ class CompetitorViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     def dispatch(self, request, *args, **kwargs):
         self.tournament = get_object_or_404(Tournament, id=kwargs['id'])
         return super(CompetitorViewSet, self).dispatch(request, *args, **kwargs)
+
+
+class DrawViewSet(mixins.ListModelMixin,
+                  mixins.RetrieveModelMixin,
+                  mixins.CreateModelMixin,
+                  mixins.DestroyModelMixin,
+                  viewsets.GenericViewSet):
+    """
+    Draw viewset.
+    Handle all crud actions for draws of a tournament.
+    """
+
+    def get_permissions(self):
+        """Assign permissions based on action."""
+        return [IsAuthenticated()]
+
+    def get_queryset(self):
+        return self.tournament.draw_set.all()
+
+    def dispatch(self, request, *args, **kwargs):
+        self.tournament = get_object_or_404(Tournament, id=kwargs['id'])
+        return super(DrawViewSet, self).dispatch(request, *args, **kwargs)
+
+    def get_serializer(self, *args, **kwargs):
+        if self.action == 'create':
+            return CreateDrawSerializer
+        return DrawModelSerializer
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['tournament'] = self.tournament
+        return context

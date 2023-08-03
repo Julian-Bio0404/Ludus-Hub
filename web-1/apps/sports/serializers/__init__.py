@@ -1,3 +1,4 @@
+from .categories import CategoryModelSerializer, ModalityModelSerializer  # NOQA
 from .clubs import ClubModelSerializer  # NOQA
 from .members import (AddTeamMemberSerializer,  # NOQA
                       AssistanceModelSerializer, CreateAssistanceSerializer,
@@ -9,4 +10,5 @@ from .tournaments import (AddCompetitorSerializer,  # NOQA
                           CompetitorModelSerializer,
                           CreateDrawSerializer,
                           CreateTournamentSerializer,
+                          DrawModelSerializer,
                           TournamentModelSerializer)
