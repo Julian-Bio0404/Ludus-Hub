@@ -99,6 +99,8 @@ class DrawViewSet(mixins.ListModelMixin,
     Handle all crud actions for draws of a tournament.
     """
 
+    serializer_class = DrawModelSerializer
+
     def get_permissions(self):
         """Assign permissions based on action."""
         return [IsAuthenticated()]
@@ -110,12 +112,11 @@ class DrawViewSet(mixins.ListModelMixin,
         self.tournament = get_object_or_404(Tournament, id=kwargs['id'])
         return super(DrawViewSet, self).dispatch(request, *args, **kwargs)
 
-    def get_serializer(self, *args, **kwargs):
-        if self.action == 'create':
-            return CreateDrawSerializer
-        return DrawModelSerializer
-
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context['tournament'] = self.tournament
-        return context
+    def create(self, request, *args, **kwargs):
+        data = request.data
+        serializer = CreateDrawSerializer(
+            data=data, context={'tournament': self.tournament})
+        serializer.is_valid(raise_exception=True)
+        draw = serializer.save()
+        data = DrawModelSerializer(draw).data
+        return Response(data=data, status=status.HTTP_201_CREATED)

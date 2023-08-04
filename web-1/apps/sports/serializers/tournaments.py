@@ -1,7 +1,8 @@
 """Tournament serializers."""
 
-from apps.sports.models import Competitor, Draw, Sport, Team, Tournament
-from apps.sports.serializers import SportModelSerializer, TeamModelSerializer
+from apps.sports.models import Competitor, Draw, Sport, Team, Tournament, Round
+from apps.sports.serializers import (CategoryModelSerializer,
+                                     SportModelSerializer, TeamModelSerializer)
 from apps.users.models import User
 from apps.users.serializers import UserModelSerializer
 from django.db.models import Q
@@ -189,22 +190,46 @@ class CreateDrawSerializer(serializers.Serializer):
         if competitor_seeds:
             self.context['competitor_seeds'] = competitor_seeds
 
+        return data
+
     def create(self, data):
         draw = Draw.objects.create(
             type=data['type'],
             category=self.context['category'],
             tournament=self.context['tournament']
         )
+
+        # TO DO: Validate level type according to sport
+
+        Round.objects.create(
+            type=data['type'],
+            level_type=Round.Levels.group,
+            draw=draw
+        )
+
+        # TO DO: Create groups according to sport
+        # TO DO: Create matches
+
         return draw
 
 
 class DrawModelSerializer(serializers.ModelSerializer):
     """Draw model serializer."""
 
+    category = CategoryModelSerializer(read_only=True)
+    round_url = serializers.SerializerMethodField()
+
+    def get_round_url(self, obj):
+        round = obj.round_set.filter(order=1).last()
+        # TO DO: get url reverse
+        return round.__str__()
+
     class Meta:
         """Meta options."""
         model = Draw
         fields = [
             'id', 'type', 'category',
+            'round_url',
             'created', 'updated'
         ]
+        read_only_fields = ['category', 'round_url']
