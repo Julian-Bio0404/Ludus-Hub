@@ -1,11 +1,12 @@
 """Tournament serializers."""
 
-from apps.sports.models import Competitor, Draw, Sport, Team, Tournament, Round
+from apps.sports.models import Competitor, Draw, Round, Sport, Team, Tournament
 from apps.sports.serializers import (CategoryModelSerializer,
                                      SportModelSerializer, TeamModelSerializer)
 from apps.users.models import User
 from apps.users.serializers import UserModelSerializer
 from django.db.models import Q
+from django.urls import reverse
 from rest_framework import serializers
 
 
@@ -222,8 +223,9 @@ class DrawModelSerializer(serializers.ModelSerializer):
 
     def get_round_url(self, obj):
         round = obj.round_set.filter(order=1).last()
-        # TO DO: get url reverse
-        return round.__str__()
+        tournament = obj.tournament
+        url = reverse('sports:rounds-detail', args=[tournament.id, round.id])
+        return url
 
     class Meta:
         """Meta options."""
