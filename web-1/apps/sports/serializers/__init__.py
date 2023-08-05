@@ -11,4 +11,5 @@ from .tournaments import (AddCompetitorSerializer,  # NOQA
                           CreateDrawSerializer,
                           CreateTournamentSerializer,
                           DrawModelSerializer,
+                          RoundModelSerializer,
                           TournamentModelSerializer)

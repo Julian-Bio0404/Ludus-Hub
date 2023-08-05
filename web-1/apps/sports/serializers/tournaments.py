@@ -193,6 +193,7 @@ class CreateDrawSerializer(serializers.Serializer):
         return data
 
     def create(self, data):
+        """Create draw and rounds."""
         draw = Draw.objects.create(
             type=data['type'],
             category=self.context['category'],
@@ -233,3 +234,12 @@ class DrawModelSerializer(serializers.ModelSerializer):
             'created', 'updated'
         ]
         read_only_fields = ['category', 'round_url']
+
+
+class RoundModelSerializer(serializers.ModelSerializer):
+    """Round model serializer."""
+
+    class Meta:
+        """Meta options."""
+        model = Round
+        fields = '__all__'
