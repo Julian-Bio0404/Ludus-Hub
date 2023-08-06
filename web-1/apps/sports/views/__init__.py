@@ -3,5 +3,4 @@ from .members import (AssistanceViewSet, InvitationViewSet,  # NOQA
                       MemberViewSet, TeamViewset)
 from .sports import SportViewSet  # NOQA
 from .tournaments import (CompetitorViewSet, DrawViewSet,  # NOQA
-                          RoundViewSet,
                           TournamentViewSet)

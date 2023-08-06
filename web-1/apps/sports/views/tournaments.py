@@ -1,13 +1,12 @@
 """Tournament views."""
 
-from apps.sports.models import Round, Tournament
+from apps.sports.models import Tournament
 from apps.sports.permissions import HasCompetitors, IsTournamentCreator
 from apps.sports.serializers import (AddCompetitorSerializer,
                                      CompetitorModelSerializer,
                                      CreateDrawSerializer,
                                      CreateTournamentSerializer,
                                      DrawModelSerializer,
-                                     RoundModelSerializer,
                                      TournamentModelSerializer)
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, status, viewsets
@@ -121,25 +120,3 @@ class DrawViewSet(mixins.ListModelMixin,
         draw = serializer.save()
         data = DrawModelSerializer(draw).data
         return Response(data=data, status=status.HTTP_201_CREATED)
-
-
-class RoundViewSet(mixins.ListModelMixin,
-                   mixins.RetrieveModelMixin,
-                   viewsets.GenericViewSet):
-    """
-    Round viewset.
-    Handle list and retrieve rounds.
-    """
-
-    serializer_class = RoundModelSerializer
-
-    def get_permissions(self):
-        """Assign permissions based on action."""
-        return [IsAuthenticated()]
-
-    def get_queryset(self):
-        return Round.objects.filter(draw__tournament=self.tournament)
-
-    def dispatch(self, request, *args, **kwargs):
-        self.tournament = get_object_or_404(Tournament, id=kwargs['id'])
-        return super(RoundViewSet, self).dispatch(request, *args, **kwargs)

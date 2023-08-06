@@ -6,7 +6,6 @@ from apps.sports.serializers import (CategoryModelSerializer,
 from apps.users.models import User
 from apps.users.serializers import UserModelSerializer
 from django.db.models import Q
-from django.urls import reverse
 from rest_framework import serializers
 
 
@@ -156,6 +155,20 @@ class CompetitorModelSerializer(serializers.ModelSerializer):
         read_only_fields = ['athlete', 'team', 'category']
 
 
+class RoundModelSerializer(serializers.ModelSerializer):
+    """Round model serializer."""
+
+    class Meta:
+        """Meta options."""
+        model = Round
+        fields = [
+            'id', 'type',
+            'level_type', 'order',
+            'groups', 'matches',
+            'created', 'updated'
+        ]
+
+
 class CreateDrawSerializer(serializers.Serializer):
     """
     Create draw serializer.
@@ -219,29 +232,18 @@ class DrawModelSerializer(serializers.ModelSerializer):
     """Draw model serializer."""
 
     category = CategoryModelSerializer(read_only=True)
-    round_url = serializers.SerializerMethodField()
+    rounds = serializers.SerializerMethodField(read_only=True)
 
-    def get_round_url(self, obj):
-        round = obj.round_set.filter(order=1).last()
-        tournament = obj.tournament
-        url = reverse('sports:rounds-detail', args=[tournament.id, round.id])
-        return url
+    def get_rounds(self, obj):
+        rounds = obj.round_set.all()
+        return RoundModelSerializer(rounds, many=True).data
 
     class Meta:
         """Meta options."""
         model = Draw
         fields = [
-            'id', 'type', 'category',
-            'round_url',
+            'id', 'type',
+            'category', 'rounds',
             'created', 'updated'
         ]
-        read_only_fields = ['category', 'round_url']
-
-
-class RoundModelSerializer(serializers.ModelSerializer):
-    """Round model serializer."""
-
-    class Meta:
-        """Meta options."""
-        model = Round
-        fields = '__all__'
+        read_only_fields = ['category', 'rounds']
