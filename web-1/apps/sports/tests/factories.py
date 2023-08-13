@@ -1,12 +1,14 @@
 """Sport factories."""
 
+from datetime import datetime, timedelta
 from typing import Any, Sequence
 
 from apps.sports.models import (Assistance, Category, Club, Invitation, Member,
-                                Modality, Sport, Tag, Team)
+                                Modality, Sport, Tag, Team, Tournament)
 from apps.users.tests.factories import UserFactory
 from factory import Faker, SubFactory, post_generation
 from factory.django import DjangoModelFactory
+from factory.fuzzy import FuzzyNaiveDateTime
 
 
 class SportFactory(DjangoModelFactory):
@@ -118,9 +120,32 @@ class TagFactory(DjangoModelFactory):
 
 class TeamFactory(DjangoModelFactory):
     """Team model factory."""
+
     name = Faker('company')
     club = SubFactory(ClubFactory)
 
     class Meta:
         model = Team
-        # django_get_or_create = ['name']
+
+
+class TournamentFactory(DjangoModelFactory):
+    """Tournament model factory."""
+
+    creator = SubFactory(UserFactory)
+    type = Tournament.Types.open
+    level = Tournament.Levels.local
+    sport = SubFactory(SportFactory)
+    date = FuzzyNaiveDateTime(
+        datetime.now(),
+        datetime.now() + timedelta(days=365)
+    )
+
+    @post_generation
+    def categories(self, create: bool, extracted: Sequence[Any], **kwargs):
+        if not create:
+            return
+        if extracted:
+            self.categories.add(*extracted)
+
+    class Meta:
+        model = Tournament
