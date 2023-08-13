@@ -1,6 +1,7 @@
 """Tournament serializers."""
 
-from apps.sports.models import Competitor, Draw, Round, Sport, Team, Tournament
+from apps.sports.models import (Category, Competitor, Draw, Round, Rule, Sport,
+                                Team, Tournament)
 from apps.sports.serializers import (CategoryModelSerializer,
                                      SportModelSerializer, TeamModelSerializer)
 from apps.users.models import User
@@ -184,10 +185,23 @@ class CreateDrawSerializer(serializers.Serializer):
         initial_seeds = data.get('initial_seeds')
         tournament = self.context['tournament']
 
-        category = tournament.categories.filter(id=category_id).last()
-        if not category:
+        try:
+            category = tournament.categories.get(id=category_id)
+        except Category.DoesNotExist:
             raise serializers.ValidationError('The category does not exist')
+
         self.context['category'] = category
+
+        rule = Rule.objects.get(
+            sport=tournament.sport,
+            modality=category.modality
+        )
+
+        if not rule.valid_conditions():
+            raise serializers.ValidationError(
+                f'The rules of {category.modality.name} are not yet available')
+
+        self.context['conditions'] = rule.conditions
 
         competitor_seeds = []
         if initial_seeds:
@@ -208,17 +222,19 @@ class CreateDrawSerializer(serializers.Serializer):
 
     def create(self, data):
         """Create draw and rounds."""
+        tournament = self.context['tournament']
+        category = self.context['category']
+        conditions = self.context['conditions']
+
         draw = Draw.objects.create(
             type=data['type'],
-            category=self.context['category'],
-            tournament=self.context['tournament']
+            category=category,
+            tournament=tournament
         )
-
-        # TO DO: Validate level type according to sport
 
         Round.objects.create(
             type=data['type'],
-            level_type=Round.Levels.group,
+            level_type=conditions.get('type-level-initial-round'),
             draw=draw
         )
 
