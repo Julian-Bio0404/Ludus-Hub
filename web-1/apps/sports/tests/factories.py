@@ -132,6 +132,7 @@ class TournamentFactory(DjangoModelFactory):
     """Tournament model factory."""
 
     creator = SubFactory(UserFactory)
+    name = Faker('company')
     type = Tournament.Types.open
     level = Tournament.Levels.local
     sport = SubFactory(SportFactory)
