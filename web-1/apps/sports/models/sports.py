@@ -33,5 +33,16 @@ class Rule(BaseAbstractModel):
 
     conditions = models.JSONField(default=dict)
 
+    @classmethod
+    def get_default_conditions(self):
+        data = {
+            'min-registered': 4,
+            'allow-initial-seeds': True,
+            'types-draws-allowed': [],
+            'type-level-initial-round': '',
+            'match-type': ''
+        }
+        return data
+
     class Meta:
         unique_together = ('sport', 'modality')

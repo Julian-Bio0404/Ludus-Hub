@@ -19,7 +19,7 @@ def create_sport_rules(self, id: str, modality_ids: list[str], action: str) -> b
             Rule(
                 sport=sport,
                 modality=modality,
-                conditions={"key-1": "value"}
+                conditions=Rule.get_default_conditions()
             ) for modality in modalities
         ]
         Rule.objects.bulk_create(rules_batch, ignore_conflicts=True)
