@@ -3,8 +3,9 @@
 from datetime import datetime, timedelta
 from typing import Any, Sequence
 
-from apps.sports.models import (Assistance, Category, Club, Invitation, Member,
-                                Modality, Sport, Tag, Team, Tournament)
+from apps.sports.models import (Assistance, Category, Club, Competitor,
+                                Invitation, Member, Modality, Sport, Tag, Team,
+                                Tournament)
 from apps.users.tests.factories import UserFactory
 from factory import Faker, SubFactory, post_generation
 from factory.django import DjangoModelFactory
@@ -150,3 +151,25 @@ class TournamentFactory(DjangoModelFactory):
 
     class Meta:
         model = Tournament
+
+
+class BaseCompetitorFactory(DjangoModelFactory):
+    """Base Competitor factory."""
+
+    category = SubFactory(CategoryFactory)
+    tournament = SubFactory(TournamentFactory)
+
+    class Meta:
+        model = Competitor
+
+
+class AthleteCompetitorFactory(BaseCompetitorFactory):
+    """Competitor model factory."""
+
+    athlete = SubFactory(UserFactory)
+
+
+class TeamCompetitorFactory(BaseCompetitorFactory):
+    """Competitor model factory."""
+
+    team = SubFactory(TeamFactory)
