@@ -1,5 +1,6 @@
 """Tournament serializers."""
 
+from apps.sports.adapters import SPORT_ADAPTERS_MAPPING
 from apps.sports.models import (Category, Competitor, Draw, Round, Rule, Sport,
                                 Team, Tournament)
 from apps.sports.serializers import (CategoryModelSerializer,
@@ -225,21 +226,17 @@ class CreateDrawSerializer(serializers.Serializer):
         tournament = self.context['tournament']
         category = self.context['category']
         conditions = self.context['conditions']
+        competitors = list(tournament.competitor_set.all())
+        sport_name = tournament.sport.name.lower()
+        adapter = SPORT_ADAPTERS_MAPPING[sport_name]
 
-        draw = Draw.objects.create(
+        draw = adapter.create_draw(
+            level_type=conditions.get('type-level-initial-round'),
+            competitors=competitors,
             type=data['type'],
             category=category,
             tournament=tournament
         )
-
-        Round.objects.create(
-            type=data['type'],
-            level_type=conditions.get('type-level-initial-round'),
-            draw=draw
-        )
-
-        # TO DO: Create groups according to sport
-        # TO DO: Create matches
 
         return draw
 

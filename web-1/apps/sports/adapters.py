@@ -1,8 +1,8 @@
 """Sport adapters."""
 
 import random
-from typing import Union
 from datetime import datetime, timedelta
+from typing import Union
 
 from rest_framework import serializers
 from sports.models import (Competitor, Draw, Group, GroupMatch, Match,
@@ -23,7 +23,7 @@ class SportAdapter:
 
     def get_sport(self) -> Union[Sport, None]:
         try:
-            sport = Sport.objects.get(name=self.name)
+            sport = Sport.objects.get(name__iexact=self.name)
         except Sport.DoesNotExist:
             sport = None
         return sport
@@ -128,8 +128,11 @@ class SportAdapter:
         return draw
 
 
-class Karate(SportAdapter):
+class KarateAdapter(SportAdapter):
     """Karate adaptor."""
+
+    def __init__(self) -> None:
+        super().__init__('karate')
 
     def validate(self, data, context):
         type = data.get('type')
@@ -147,7 +150,14 @@ class Karate(SportAdapter):
         return types
 
 
-class Soccer(SportAdapter):
+class SoccerAdapter(SportAdapter):
     """Soccer adaptor."""
 
-    pass
+    def __init__(self) -> None:
+        super().__init__('soccer')
+
+
+SPORT_ADAPTERS_MAPPING = {
+    'karate': KarateAdapter,
+    'soccer': SoccerAdapter
+}
