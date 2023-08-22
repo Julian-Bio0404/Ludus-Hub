@@ -6,7 +6,8 @@ from typing import Union
 
 from rest_framework import serializers
 from sports.models import (Competitor, Draw, Group, GroupMatch, Match,
-                           MatchCompetitor, Round, RoundGroup, Sport)
+                           MatchCompetitor, Round, RoundGroup, RoundMatch,
+                           Sport)
 
 
 class SportAdapter:
@@ -20,6 +21,7 @@ class SportAdapter:
     def __init__(self, name) -> None:
         self.name = name
         self.sport = self.get_sport()
+        self.draw = None
 
     def get_sport(self) -> Union[Sport, None]:
         try:
@@ -51,6 +53,58 @@ class SportAdapter:
         batch = [Match(**data) for _ in range(competitor_count)]
         return Match.objects.bulk_create(batch)
 
+    def add_competitors_to_match(
+        self,
+        competitors: list[Competitor],
+        matches: list[Match]
+    ) -> list[MatchCompetitor]:
+        match_type = matches[0].type
+        random.shuffle(competitors)
+        match_batch = []
+
+        if match_type == Match.Types.individual:
+            for index, competitor in enumerate(competitors):
+                match = random.choice(matches)
+                matches.remove(match)
+                match_competitor = MatchCompetitor(
+                    match=match,
+                    competitor=competitor,
+                    order=index+1
+                )
+                match_batch.append(match_competitor)
+
+        elif match_type == Match.Types.versus:
+            while competitors:
+                match = random.choice(matches)
+                matches.remove(match)
+                competitors_sample = random.sample(competitors, 2)
+                for cs in competitors_sample:
+                    competitors.remove(cs)
+                    match_competitor = MatchCompetitor(
+                        match=match,
+                        competitor=cs,
+                        order=index+1
+                    )
+                    match_batch.append(match_competitor)
+
+        return MatchCompetitor.objects.bulk_create(match_batch)
+
+    def create_groups(self, round: Round, count: int) -> list[Group]:
+        group_batch = [
+            Group(
+                title=f"Group {chr(ord('A') + i-1)}: Round {round.order}"
+            ) for i in range(count)
+        ]
+        return Group.objects.bulk_create(group_batch)
+
+    def get_submatches(self, matches: list[Match], count: int) -> list[list[Match]]:
+        sublist_length = len(matches) // count
+        submatches = []
+        for i in range(0, len(submatches), sublist_length):
+            submatch = submatches[i:i + sublist_length]
+            submatches.append(submatch)
+        return submatches
+
     def create_match_flow(
         self,
         round: Round,
@@ -58,44 +112,22 @@ class SportAdapter:
         matches: list[Match]
     ) -> None:
         # Create match competitors
-        random.shuffle(competitors)
-        match_batch = []
-
-        for index, competitor in enumerate(competitors):
-            match = random.choice(matches)
-            matches.remove(match)
-            match_competitor = MatchCompetitor(
-                match=match,
-                competitor=competitor,
-                order=index+1
-            )
-            match_batch.append(match_competitor)
-
-        match_competitors = MatchCompetitor.objects.bulk_create(match_batch)
+        self.add_competitors_to_match(competitors, matches)
 
         # Create Groups
-        group_batch = []
-        for i in range(2):
-            char = chr(ord('A') + i-1)
-            name = f'Group {char}: Round {round.order}'
-            group = Group(title=name)
-            group_batch.append(group)
-
-        groups = Group.objects.bulk_create(group_batch)
+        count = 2
+        groups = self.create_groups(round, count)
 
         # Create group matches
-        breakpoint = len(match_competitors) // 2
-        sub_matches1 = match_competitors[: breakpoint]
-        sub_matches2 = match_competitors[breakpoint: len(match_competitors)]
-        sub_matches = [sub_matches1, sub_matches2]
+        submatches = self.get_submatches(matches, count)
 
         group_matches = []
-        for index, sb in enumerate(sub_matches):
-            for mc in sb:
+        for index, submatch in enumerate(submatches):
+            for match in submatch:
                 group_match = GroupMatch(
                     group=groups[index],
-                    match=mc.match,
-                    order=mc.order
+                    match=match,
+                    order=index+1
                 )
                 group_matches.append(group_match)
 
@@ -111,7 +143,20 @@ class SportAdapter:
             match.title = f'Round {round.order}: {competitor.competitor.__str__()}'
         Match.objects.bulk_update(matches, fields=['title'])
 
-        # _ = RoundMatch.objects.create()
+    def get_match_title(self, match: Match, round: Round) -> str:
+        competitor1 = match.competitors.first().competitor
+        if match.type == Match.Types.individual:
+            title = f'Round {round.order}: {competitor1.__str__()}'
+        elif match.type == Match.Types.versus:
+            competitor2 = match.competitors.last().competitor
+            title = f'Round {round.order}: {competitor1.__str__()} vs {competitor2.__str__()}'
+        return title
+
+    def update_matches(self, matches: list[Match], round: Round) -> None:
+        """Update Match title."""
+        for match in matches:
+            match.title = self.get_match_title(match, round)
+        Match.objects.bulk_update(matches, fields=['title'])
 
     def create_draw(
         self,
@@ -120,12 +165,13 @@ class SportAdapter:
         **kwargs
     ) -> Draw:
         self.validate()
-        draw = Draw.objects.create(**kwargs)
+        self.draw = Draw.objects.create(**kwargs)
         kwargs['level_type'] = level_type
-        round = self.create_round(draw, **kwargs)
+        round = self.create_round(self.draw, **kwargs)
         matches = self.create_match(len(competitors))
         self.create_match_flow(round, competitors, matches)
-        return draw
+        self.update_matches(matches, round)
+        return self.draw
 
 
 class KarateAdapter(SportAdapter):
@@ -148,6 +194,31 @@ class KarateAdapter(SportAdapter):
             Draw.Types.double_elimination
         ]
         return types
+
+    def get_match_data(self) -> dict:
+        data = super().get_match_data()
+        if self.draw.type == Draw.Types.single_elimination:
+            type = Match.Types.individual
+        else:
+            type = Match.Types.versus
+        data['type'] = type
+        return data
+
+    def create_match_flow(
+        self,
+        round: Round,
+        competitors: list[Competitor],
+        matches: list[Match]
+    ) -> None:
+        if self.draw.type == Draw.Types.single_elimination:
+            return super().create_match_flow(round, competitors, matches)
+        elif self.draw.type == Draw.Types.double_elimination:
+            self.add_competitors_to_match(competitors, matches)
+            batch = []
+            for index, match in matches:
+                round_match = RoundMatch(round=round, match=match, order=index+1)
+                batch.append(round_match)
+            RoundMatch.objects.bulk_create(batch)
 
 
 class SoccerAdapter(SportAdapter):
