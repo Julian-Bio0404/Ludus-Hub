@@ -4,10 +4,10 @@ import random
 from datetime import datetime, timedelta
 from typing import Union
 
+from apps.sports.models import (Competitor, Draw, Group, GroupMatch, Match,
+                                MatchCompetitor, Round, RoundGroup, RoundMatch,
+                                Sport)
 from rest_framework import serializers
-from sports.models import (Competitor, Draw, Group, GroupMatch, Match,
-                           MatchCompetitor, Round, RoundGroup, RoundMatch,
-                           Sport)
 
 
 class SportAdapter:
@@ -31,7 +31,7 @@ class SportAdapter:
         return sport
 
     def get_draw_types(self) -> list:
-        pass
+        return list(Draw.Types.labels.keys())
 
     def get_match_data(self) -> dict:
         data = {
@@ -42,8 +42,13 @@ class SportAdapter:
         }
         return data
 
-    def validate(self, data, context):
-        pass
+    def validate(self, data: dict, context: dict) -> dict:
+        type = data.get('type')
+        if type not in self.get_draw_types():
+            raise serializers.ValidationError(
+                f'Type {type} not available for this sport.'
+            )
+        return data
 
     def create_round(self, draw: Draw, **kwargs) -> Round:
         return Round.objects.create(draw=draw, **kwargs)
@@ -137,12 +142,6 @@ class SportAdapter:
         round_group_batch = [RoundGroup(group=group, round=round) for group in groups]
         RoundGroup.objects.bulk_create(round_group_batch)
 
-        # Update Match title
-        for match in matches:
-            competitor = match.competitors.last()
-            match.title = f'Round {round.order}: {competitor.competitor.__str__()}'
-        Match.objects.bulk_update(matches, fields=['title'])
-
     def get_match_title(self, match: Match, round: Round) -> str:
         competitor1 = match.competitors.first().competitor
         if match.type == Match.Types.individual:
@@ -179,14 +178,6 @@ class KarateAdapter(SportAdapter):
 
     def __init__(self) -> None:
         super().__init__('karate')
-
-    def validate(self, data, context):
-        type = data.get('type')
-        if type not in self.get_draw_types():
-            raise serializers.ValidationError(
-                f'Type {type} not available for this sport.'
-            )
-        return data
 
     def get_draw_types(self):
         types = [
@@ -226,6 +217,70 @@ class SoccerAdapter(SportAdapter):
 
     def __init__(self) -> None:
         super().__init__('soccer')
+
+    def get_draw_types(self) -> list:
+        types = [
+            Draw.Types.all_play_all,
+            Draw.Types.group_stage_and_playoffs
+        ]
+        return types
+
+    def get_match_data(self) -> dict:
+        data = super().get_match_data()
+        data['type'] = Match.Types.versus
+        return data
+
+    def create_groups(self, round: Round, count: int) -> list[Group]:
+        group_batch = [
+            Group(title=f"Group {chr(ord('A') + i-1)}") for i in range(count)
+        ]
+        return Group.objects.bulk_create(group_batch)
+
+    def create_match_flow(
+        self,
+        round: Round,
+        competitors: list[Competitor],
+        matches: list[Match]
+    ) -> None:
+        # Create match competitors
+        self.add_competitors_to_match(competitors, matches)
+
+        if self.draw.type == Draw.Types.all_play_all:
+            batch = []
+            for index, match in matches:
+                round_match = RoundMatch(round=round, match=match, order=index+1)
+                batch.append(round_match)
+            RoundMatch.objects.bulk_create(batch)
+
+        elif self.draw.type == Draw.Types.group_stage_and_playoffs:
+            # Create Groups
+            count = len(competitors) // 4
+            groups = self.create_groups(round, count)
+
+            # Create group matches
+            submatches = self.get_submatches(matches, count)
+
+            group_matches = []
+            for index, submatch in enumerate(submatches):
+                for match in submatch:
+                    group_match = GroupMatch(
+                        group=groups[index],
+                        match=match,
+                        order=index+1
+                    )
+                    group_matches.append(group_match)
+
+            GroupMatch.objects.bulk_create(group_matches)
+
+            # Create Round Group
+            round_group_batch = [RoundGroup(group=group, round=round) for group in groups]
+            RoundGroup.objects.bulk_create(round_group_batch)
+
+    def get_match_title(self, match: Match, round: Round) -> str:
+        competitor1 = match.competitors.first().competitor
+        competitor2 = match.competitors.last().competitor
+        title = f'{competitor1.__str__()} vs {competitor2.__str__()}'
+        return title
 
 
 SPORT_ADAPTERS_MAPPING = {
