@@ -119,6 +119,9 @@ class Draw(BaseAbstractModel):
 
         double_elimination = ChoiceItem('double_elimination', 'Double Elimination')
 
+        group_stage_and_playoffs = ChoiceItem(
+            'group_stage_and_playoffs', 'Group Stage and Playoffs')
+
     type = models.CharField(choices=Types.choices, max_length=26)
 
     category = models.ForeignKey(
@@ -287,6 +290,7 @@ class Match(BaseAbstractModel):
         scheduled = ChoiceItem('scheduled', 'Scheduled')
         playing = ChoiceItem('playing', 'Playing')
         paused = ChoiceItem('paused', 'Paused')
+        finished = ChoiceItem('finished', 'Finished')
 
     title = models.CharField(max_length=300, null=True)
 

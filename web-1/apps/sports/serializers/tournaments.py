@@ -1,9 +1,13 @@
 """Tournament serializers."""
 
-from apps.sports.models import Competitor, Sport, Team, Tournament
-from apps.sports.serializers import SportModelSerializer, TeamModelSerializer
+from apps.sports.adapters import SPORT_ADAPTERS_MAPPING
+from apps.sports.models import (Category, Competitor, Draw, Round, Rule, Sport,
+                                Team, Tournament)
+from apps.sports.serializers import (CategoryModelSerializer,
+                                     SportModelSerializer, TeamModelSerializer)
 from apps.users.models import User
 from apps.users.serializers import UserModelSerializer
+from django.db.models import Q
 from rest_framework import serializers
 
 
@@ -151,3 +155,108 @@ class CompetitorModelSerializer(serializers.ModelSerializer):
         ]
 
         read_only_fields = ['athlete', 'team', 'category']
+
+
+class RoundModelSerializer(serializers.ModelSerializer):
+    """Round model serializer."""
+
+    class Meta:
+        """Meta options."""
+        model = Round
+        fields = [
+            'id', 'type',
+            'level_type', 'order',
+            'groups', 'matches',
+            'created', 'updated'
+        ]
+
+
+class CreateDrawSerializer(serializers.Serializer):
+    """
+    Create draw serializer.
+    Handle the creation of tournament draws.
+    """
+
+    category_id = serializers.UUIDField()
+    type = serializers.ChoiceField(choices=Draw.Types.choices)
+    initial_seeds = serializers.ListField(child=serializers.CharField(), required=False)
+
+    def validate(self, data):
+        category_id = data.get('category_id')
+        initial_seeds = data.get('initial_seeds')
+        tournament = self.context['tournament']
+
+        try:
+            category = tournament.categories.get(id=category_id)
+        except Category.DoesNotExist:
+            raise serializers.ValidationError('The category does not exist')
+
+        self.context['category'] = category
+
+        rule = Rule.objects.get(
+            sport=tournament.sport,
+            modality=category.modality
+        )
+
+        if not rule.valid_conditions():
+            raise serializers.ValidationError(
+                f'The rules of {category.modality.name} are not yet available')
+
+        self.context['conditions'] = rule.conditions
+
+        competitor_seeds = []
+        if initial_seeds:
+            for seed in initial_seeds:
+                competitor = tournament.competitor_set.filter(
+                    Q(athlete__username=seed) | Q(team__slug=seed),
+                    category__id=category_id
+                ).last()
+                if not competitor:
+                    raise serializers.ValidationError(
+                        f'The competitor {seed} does not exist for this category')
+                competitor_seeds.append(competitor)
+
+        if competitor_seeds:
+            self.context['competitor_seeds'] = competitor_seeds
+
+        return data
+
+    def create(self, data):
+        """Create draw and rounds."""
+        tournament = self.context['tournament']
+        category = self.context['category']
+        conditions = self.context['conditions']
+        competitors = list(tournament.competitor_set.all())
+        sport_name = tournament.sport.name.lower()
+        adapter = SPORT_ADAPTERS_MAPPING[sport_name]
+
+        draw = adapter.create_draw(
+            level_type=conditions.get('type-level-initial-round'),
+            competitors=competitors,
+            type=data['type'],
+            category=category,
+            tournament=tournament
+        )
+
+        return draw
+
+
+class DrawModelSerializer(serializers.ModelSerializer):
+    """Draw model serializer."""
+
+    category = CategoryModelSerializer(read_only=True)
+    rounds = serializers.SerializerMethodField(read_only=True)
+
+    def get_rounds(self, obj):
+        rounds = obj.round_set.all()
+        return RoundModelSerializer(rounds, many=True).data
+
+    class Meta:
+        """Meta options."""
+        model = Draw
+        fields = [
+            'id', 'type',
+            'category', 'rounds',
+            'created', 'updated'
+        ]
+        read_only_fields = ['category', 'rounds']

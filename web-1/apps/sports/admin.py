@@ -5,13 +5,13 @@ from apps.sports.models import (Assistance, Category, Club, Competitor, Draw,
                                 Group, GroupMatch, Invitation, Match, Member,
                                 Modality, Round, RoundGroup, RoundMatch, Rule,
                                 Sport, Tag, Team, Tournament)
-from django import forms
+from apps.utils.admin import ImageAdminMixin
 from django.contrib import admin
 from django.db import models
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django_json_widget.widgets import JSONEditorWidget
-from apps.utils.admin import ImageAdminMixin
+from taskapp.tasks import create_sport_rules
 
 
 class BaseCategoryInline(nested_admin.NestedTabularInline):
@@ -193,14 +193,6 @@ class TeamAdmin(admin.ModelAdmin):
         return False
 
 
-class SportForm(forms.ModelForm):
-    """Sport form admin."""
-
-    class Meta:
-        model = Sport
-        exclude = ('categories', 'tags')
-
-
 class CategoryInline(admin.TabularInline):
     """Category inline admin."""
 
@@ -265,25 +257,23 @@ class CategoryAdmin(admin.ModelAdmin):
     list_display = [
         'name', 'slug',
         'modality', 'gender',
-        'created'
+        'type', 'created'
     ]
 
     search_fields = ['name']
 
-    list_filter = ['modality', 'gender']
+    list_filter = ['modality', 'gender', 'type']
 
     fieldsets = (
         None, {
             'classes': ('suit-tab', 'suit-tab-general'),
-            'fields': ('modality', 'gender', 'name'),
+            'fields': ('modality', 'gender', 'name', 'type'),
         }),
 
 
 @admin.register(Sport)
 class SportAdmin(admin.ModelAdmin, ImageAdminMixin):
     """Sport model admin."""
-
-    form = SportForm
 
     list_display = [
         'name', 'slug',
@@ -307,6 +297,36 @@ class SportAdmin(admin.ModelAdmin, ImageAdminMixin):
         ('categories', 'Categories'),
         ('tags', 'Tags'),
     )
+
+    def save_formset(self, request, form, formset, change):
+        if formset.prefix == 'Sport_categories':
+            sport = form.instance
+            removed_modality_ids = []
+            added_modality_ids = []
+            for form_obj in formset.forms:
+                data = form_obj.cleaned_data
+                category = data.get('category')
+                if data.get('DELETE', False):
+                    removed_modality_ids.append(category.modality.id)
+                else:
+                    added_modality_ids.append(category.modality.id)
+
+            if removed_modality_ids:
+                kwargs = {
+                    'id': sport.id,
+                    'modality_ids': removed_modality_ids,
+                    'action': 'remove'
+                }
+            elif added_modality_ids:
+                kwargs = {
+                    'id': sport.id,
+                    'modality_ids': added_modality_ids,
+                    'action': 'add'
+                }
+
+            if removed_modality_ids or added_modality_ids:
+                create_sport_rules.delay(**kwargs)
+        return super().save_formset(request, form, formset, change)
 
 
 class TournamentCategoryInline(BaseCategoryInline):
