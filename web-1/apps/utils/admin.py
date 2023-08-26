@@ -51,6 +51,6 @@ class BaseTabularInline(admin.TabularInline, TabularInlineMixin):
     pass
 
 
-class BaseNestedTabularInline(nested_admin.NestedTabularInline, TabularInlineMixin):
+class BaseNestedTabularInline(TabularInlineMixin, nested_admin.NestedTabularInline):
     """Base Nested Tabular Inline admin."""
     pass

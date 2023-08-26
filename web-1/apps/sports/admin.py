@@ -324,6 +324,14 @@ class RefereesInline(BaseNestedTabularInline):
     suit_classes = 'suit-tab suit-tab-referees'
 
 
+class RefereeInvitations(BaseNestedTabularInline):
+    """Referee invitation inine admin."""
+
+    model = Tournament.referee_invitations.through
+    verbose_name_plural = 'Referee invitations'
+    suit_classes = 'suit-tab suit-tab-referee-invitations'
+
+
 class BaseCompetitorInline(BaseNestedTabularInline):
     """Base competitor inline admin."""
 
@@ -412,6 +420,14 @@ class DrawInline(BaseNestedTabularInline):
     inlines = [RoundInline]
 
 
+class AdministratorInline(BaseNestedTabularInline):
+    """Administrator inline admin."""
+
+    model = Tournament.administrators.through
+    verbose_name_plural = 'Administrators'
+    suit_classes = 'suit-tab suit-tab-administrators'
+
+
 @admin.register(Tournament)
 class TournamentAdmin(nested_admin.NestedModelAdmin):
     """Tournament model admin."""
@@ -425,6 +441,8 @@ class TournamentAdmin(nested_admin.NestedModelAdmin):
     inlines = [
         TournamentCategoryInline,
         RefereesInline,
+        RefereeInvitations,
+        AdministratorInline,
         CompetitorInline,
         DrawInline
     ]
@@ -445,6 +463,8 @@ class TournamentAdmin(nested_admin.NestedModelAdmin):
         ('details', 'Details'),
         ('categories', 'Categories'),
         ('referees', 'Referees'),
+        ('referee-invitations', 'Referee Invitations'),
+        ('administrators', 'Administrators'),
         ('competitors', 'Competitors'),
         ('draws', 'Draws'),
     )
