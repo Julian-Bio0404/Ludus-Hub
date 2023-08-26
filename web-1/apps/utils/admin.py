@@ -1,5 +1,7 @@
 """Admin utils"""
 
+import nested_admin
+from django.contrib import admin
 from django.utils.html import format_html
 
 
@@ -36,3 +38,19 @@ class ImageAdminMixin:
     icon_preview.short_description = 'Icon'
     photo_preview.short_description = 'Photo'
     cover_photo_preview.short_description = 'Cover Photo'
+
+
+class TabularInlineMixin:
+
+    suit_form_inlines_hide_original = True
+    extra = 0
+
+
+class BaseTabularInline(admin.TabularInline, TabularInlineMixin):
+    """Base Tabular Inline admin."""
+    pass
+
+
+class BaseNestedTabularInline(nested_admin.NestedTabularInline, TabularInlineMixin):
+    """Base Nested Tabular Inline admin."""
+    pass
