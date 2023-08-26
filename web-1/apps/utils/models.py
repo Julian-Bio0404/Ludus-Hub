@@ -66,3 +66,21 @@ class BaseModel(BaseAbstractModel):
         abstract = True
         get_latest_by = 'created'
         ordering = ['-created', 'name']
+
+
+class BaseInvitation(BaseAbstractModel):
+    """
+    Base Invitation model.
+    Acts as an abstract base class inherits from
+    BaseAbstractModel. Extend your models of this class to add
+    the following field:
+        + used (BooleanField): Store if it was used or not.
+    """
+
+    used = models.BooleanField(default=False)
+
+    class Meta:
+        """Meta option."""
+        abstract = True
+        get_latest_by = 'created'
+        ordering = ['-created']

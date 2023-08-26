@@ -1,6 +1,6 @@
 """Tournament models."""
 
-from apps.utils.models import BaseAbstractModel, BaseModel
+from apps.utils.models import BaseAbstractModel, BaseInvitation, BaseModel
 from django.db import models
 from djchoices import ChoiceItem, DjangoChoices
 from mptt.models import MPTTModel, TreeForeignKey
@@ -54,8 +54,37 @@ class Tournament(BaseModel):
         blank=True
     )
 
+    referee_invitations = models.ManyToManyField(
+        'sports.RefereeInvitation',
+        blank=True
+    )
+
+    administrators = models.ManyToManyField(
+        'users.User',
+        related_name='tournaments_as_admin',
+        blank=True
+    )
+
     def __str__(self) -> str:
         return self.name
+
+
+class RefereeInvitation(BaseInvitation):
+    """Referee invitation model."""
+
+    sent_by = models.ForeignKey(
+        'users.User',
+        on_delete=models.CASCADE
+    )
+
+    invited = models.ForeignKey(
+        'users.User',
+        on_delete=models.CASCADE,
+        related_name='referee_invitations'
+    )
+
+    def __str__(self) -> str:
+        return f'{self.sent_by.username} -> {self.invited.username}'
 
 
 class Competitor(BaseAbstractModel):
