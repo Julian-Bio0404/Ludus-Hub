@@ -6,7 +6,8 @@ from .members import (AddTeamMemberSerializer,  # NOQA
                       InvitationModelSerializer, MemberModelSerializer,
                       RemoveTeamMemberSerializer, TeamModelSerializer)
 from .sports import SportModelSerializer  # NOQA
-from .tournaments import (AddCompetitorSerializer,  # NOQA
+from .tournaments import (AddAdminSerializer,  # NOQA
+                          AddCompetitorSerializer,
                           CompetitorModelSerializer,
                           CreateDrawSerializer,
                           CreateTournamentSerializer,

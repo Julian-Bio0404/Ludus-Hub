@@ -260,3 +260,25 @@ class DrawModelSerializer(serializers.ModelSerializer):
             'created', 'updated'
         ]
         read_only_fields = ['category', 'rounds']
+
+
+class AddAdminSerializer(serializers.Serializer):
+    """Add a admin to a tournament"""
+
+    usernames = serializers.ListField(child=serializers.CharField())
+    action = serializers.ChoiceField(choices=['add', 'remove'])
+
+    def validate(self, data):
+        usernames = data['usernames']
+        users = User.objects.filter(username__in=usernames)
+        self.context['users'] = users
+        return data
+
+    def save(self, **kwargs):
+        action = self.data['action']
+        tournament = self.context['tournament']
+        if action == 'add':
+            tournament.administrators.add(*self.context['users'])
+        elif action == 'remove':
+            tournament.administrators.remove(*self.context['users'])
+        return tournament

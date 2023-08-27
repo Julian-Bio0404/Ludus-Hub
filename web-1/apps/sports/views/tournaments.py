@@ -2,12 +2,14 @@
 
 from apps.sports.models import Tournament
 from apps.sports.permissions import HasCompetitors, IsTournamentCreator
-from apps.sports.serializers import (AddCompetitorSerializer,
+from apps.sports.serializers import (AddAdminSerializer,
+                                     AddCompetitorSerializer,
                                      CompetitorModelSerializer,
                                      CreateDrawSerializer,
                                      CreateTournamentSerializer,
                                      DrawModelSerializer,
                                      TournamentModelSerializer)
+from apps.users.serializers import UserModelSerializer
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
@@ -120,3 +122,32 @@ class DrawViewSet(mixins.ListModelMixin,
         draw = serializer.save()
         data = DrawModelSerializer(draw).data
         return Response(data=data, status=status.HTTP_201_CREATED)
+
+
+class AdministratorViewSet(mixins.ListModelMixin,
+                           mixins.CreateModelMixin,
+                           viewsets.GenericViewSet):
+    """
+    Administrator viewset.
+    Handle list, add and remove tournament administrators.
+    """
+
+    serializer_class = UserModelSerializer
+
+    def get_queryset(self):
+        return self.tournament.administrators.all()
+
+    def dispatch(self, request, *args, **kwargs):
+        self.tournament = get_object_or_404(Tournament, id=kwargs['id'])
+        return super(AdministratorViewSet, self).dispatch(request, *args, **kwargs)
+
+    def create(self, request, *args, **kwargs):
+        """Add or remove admins to a tournament."""
+        data = request.data
+        serializer = AddAdminSerializer(
+            data=data, context={'tournament': self.tournament})
+        serializer.is_valid(raise_exception=True)
+        tournament = serializer.save()
+        administrators = tournament.administrators.all()
+        data = UserModelSerializer(administrators, many=True).data
+        return Response(data=data, status=status.HTTP_200_OK)
