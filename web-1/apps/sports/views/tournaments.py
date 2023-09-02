@@ -6,8 +6,10 @@ from apps.sports.serializers import (AddAdminSerializer,
                                      AddCompetitorSerializer,
                                      CompetitorModelSerializer,
                                      CreateDrawSerializer,
+                                     CreateRefereeInvitationSerializer,
                                      CreateTournamentSerializer,
                                      DrawModelSerializer,
+                                     RefereeInvitationModelSerializer,
                                      TournamentModelSerializer)
 from apps.users.serializers import UserModelSerializer
 from django_filters.rest_framework import DjangoFilterBackend
@@ -151,3 +153,31 @@ class AdministratorViewSet(mixins.ListModelMixin,
         administrators = tournament.administrators.all()
         data = UserModelSerializer(administrators, many=True).data
         return Response(data=data, status=status.HTTP_200_OK)
+
+
+class RefereeInvitationViewSet(mixins.ListModelMixin,
+                               mixins.CreateModelMixin,
+                               mixins.UpdateModelMixin,
+                               viewsets.GenericViewSet):
+    """
+    Referee viewset.
+    Handle list, update, and remove referee invitations.
+    """
+
+    serializer_class = RefereeInvitationModelSerializer
+
+    def dispatch(self, request, *args, **kwargs):
+        self.tournament = get_object_or_404(Tournament, id=kwargs['id'])
+        return super(RefereeInvitationViewSet, self).dispatch(request, *args, **kwargs)
+
+    def create(self, request, *args, **kwargs):
+        """Create referee invitations."""
+        data = request.data
+        creator = request.user
+        serializer = CreateRefereeInvitationSerializer(
+            data=data,
+            context={'tournament': self.tournament, 'creator': creator})
+        serializer.is_valid(raise_exception=True)
+        invitations = serializer.save()
+        data = RefereeInvitationModelSerializer(invitations, many=True).data
+        return Response(data=data, status=status.HTTP_201_CREATED)

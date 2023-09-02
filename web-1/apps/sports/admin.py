@@ -34,7 +34,7 @@ class MemberInline(BaseTabularInline):
     """Club member inline admin."""
 
     model = Member
-    readonly_fields = ['user', 'active']
+    # readonly_fields = ['user', 'active']
     can_delete = False
     verbose_name_plural = 'members'
     suit_classes = 'suit-tab suit-tab-members'
@@ -134,14 +134,14 @@ class ClubAdmin(admin.ModelAdmin, ImageAdminMixin):
         ('assistances', 'Assistances')
     )
 
-    def has_add_permission(self, request, obj=None) -> bool:
-        return False
+    # def has_add_permission(self, request, obj=None) -> bool:
+    #     return False
 
-    def has_delete_permission(self, request, obj=None) -> bool:
-        return False
+    # def has_delete_permission(self, request, obj=None) -> bool:
+    #     return False
 
-    def has_change_permission(self, request, obj=None) -> bool:
-        return False
+    # def has_change_permission(self, request, obj=None) -> bool:
+    #     return False
 
 
 @admin.register(Team)

@@ -10,7 +10,9 @@ from .tournaments import (AddAdminSerializer,  # NOQA
                           AddCompetitorSerializer,
                           CompetitorModelSerializer,
                           CreateDrawSerializer,
+                          CreateRefereeInvitationSerializer,
                           CreateTournamentSerializer,
                           DrawModelSerializer,
                           RoundModelSerializer,
+                          RefereeInvitationModelSerializer,
                           TournamentModelSerializer)

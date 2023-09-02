@@ -1,8 +1,8 @@
 """Tournament serializers."""
 
 from apps.sports.adapters import SPORT_ADAPTERS_MAPPING
-from apps.sports.models import (Category, Competitor, Draw, Round, Rule, Sport,
-                                Team, Tournament)
+from apps.sports.models import (Category, Competitor, Draw, RefereeInvitation,
+                                Round, Rule, Sport, Team, Tournament)
 from apps.sports.serializers import (CategoryModelSerializer,
                                      SportModelSerializer, TeamModelSerializer)
 from apps.users.models import User
@@ -282,3 +282,46 @@ class AddAdminSerializer(serializers.Serializer):
         elif action == 'remove':
             tournament.administrators.remove(*self.context['users'])
         return tournament
+
+
+class RefereeInvitationModelSerializer(serializers.ModelSerializer):
+    """Referee invitation model serializer."""
+
+    sent_by = UserModelSerializer(read_only=True)
+    invited = UserModelSerializer(read_only=True)
+
+    class Meta:
+        """Meta options."""
+        model = RefereeInvitation
+        fields = [
+            'id', 'sent_by', 'invited',
+            'used', 'created', 'updated'
+        ]
+
+
+class CreateRefereeInvitationSerializer(serializers.Serializer):
+    """Create referee invitation serializer."""
+
+    usernames = serializers.ListField(child=serializers.CharField())
+
+    def validate(self, data):
+        usernames = data['usernames']
+        tournament = self.context['tournament']
+        referee_ids = tournament.referees.values_list('id', flat=True)
+        users = User.objects.filter(
+            username__in=usernames).exclude(id__in=referee_ids)
+        self.context['users'] = users
+        return data
+
+    def save(self, **kwargs):
+        tournament = self.context['tournament']
+        users = self.context['users']
+        batch = [
+            RefereeInvitation(
+                sent_by=self.context['creator'],
+                invited=user,
+                tournament=tournament
+            ) for user in users
+        ]
+        invitations = RefereeInvitation.objects.bulk_create(batch)
+        return invitations

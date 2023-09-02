@@ -4,4 +4,4 @@ from .members import Assistance, Invitation, Member, Team  # NOQA
 from .sports import Rule, Sport  # NOQA
 from .tournaments import (Competitor, Draw, Group, GroupMatch, Match,  # NOQA
                           MatchCompetitor, Rating, Round, RoundGroup,
-                          RoundMatch, Tournament)
+                          RoundMatch, RefereeInvitation, Tournament)
