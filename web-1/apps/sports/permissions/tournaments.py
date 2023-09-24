@@ -19,3 +19,19 @@ class IsTournamentCreator(BasePermission):
     def has_object_permission(self, request, view, obj):
         """Check that requesting user is the tournament creator."""
         return request.user == obj.creator
+
+
+class IsCreatorOrInvited(BasePermission):
+    """Allow access only to invitation creator."""
+
+    def has_object_permission(self, request, view, obj):
+        """Check that requesting user is the tournament creator or invited."""
+        return request.user in [obj.sent_by, obj.invited]
+
+
+class IsInvited(BasePermission):
+    """Allow access only to referee invited."""
+
+    def has_object_permission(self, request, view, obj):
+        """Check that requesting user is invited."""
+        return request.user == obj.invited

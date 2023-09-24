@@ -308,8 +308,9 @@ class CreateRefereeInvitationSerializer(serializers.Serializer):
         usernames = data['usernames']
         tournament = self.context['tournament']
         referee_ids = tournament.referees.values_list('id', flat=True)
-        users = User.objects.filter(
-            username__in=usernames).exclude(id__in=referee_ids)
+        invited_ids = tournament.referee_invitations.values_list('invited__id', flat=True)
+        user_ids = list(referee_ids) + list(invited_ids)
+        users = User.objects.filter(username__in=usernames).exclude(id__in=user_ids)
         self.context['users'] = users
         return data
 
@@ -324,4 +325,5 @@ class CreateRefereeInvitationSerializer(serializers.Serializer):
             ) for user in users
         ]
         invitations = RefereeInvitation.objects.bulk_create(batch)
+        tournament.referee_invitations.add(*invitations)
         return invitations

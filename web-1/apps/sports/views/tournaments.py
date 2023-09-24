@@ -1,7 +1,8 @@
 """Tournament views."""
 
 from apps.sports.models import Tournament
-from apps.sports.permissions import HasCompetitors, IsTournamentCreator
+from apps.sports.permissions import (HasCompetitors, IsCreatorOrInvited,
+                                     IsInvited, IsTournamentCreator)
 from apps.sports.serializers import (AddAdminSerializer,
                                      AddCompetitorSerializer,
                                      CompetitorModelSerializer,
@@ -158,6 +159,7 @@ class AdministratorViewSet(mixins.ListModelMixin,
 class RefereeInvitationViewSet(mixins.ListModelMixin,
                                mixins.CreateModelMixin,
                                mixins.UpdateModelMixin,
+                               mixins.DestroyModelMixin,
                                viewsets.GenericViewSet):
     """
     Referee viewset.
@@ -165,6 +167,18 @@ class RefereeInvitationViewSet(mixins.ListModelMixin,
     """
 
     serializer_class = RefereeInvitationModelSerializer
+
+    def get_permissions(self):
+        """Assign permissions based on action."""
+        permissions = [IsAuthenticated]
+        if self.action in ['destroy']:
+            permissions.append(IsCreatorOrInvited)
+        elif self.action in ['update', 'partial_update']:
+            permissions.append(IsInvited)
+        return [p() for p in permissions]
+
+    def get_queryset(self):
+        return self.tournament.referee_invitations.all()
 
     def dispatch(self, request, *args, **kwargs):
         self.tournament = get_object_or_404(Tournament, id=kwargs['id'])

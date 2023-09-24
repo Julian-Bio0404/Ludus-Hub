@@ -2,7 +2,8 @@
 
 from apps.sports.views import (AdministratorViewSet, AssistanceViewSet,
                                ClubViewSet, CompetitorViewSet, DrawViewSet,
-                               InvitationViewSet, MemberViewSet, SportViewSet,
+                               InvitationViewSet, MemberViewSet,
+                               RefereeInvitationViewSet, SportViewSet,
                                TeamViewset, TournamentViewSet)
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
@@ -43,6 +44,12 @@ router.register(
     r'tournaments/(?P<id>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/administrators',
     AdministratorViewSet,
     basename='administrators'
+)
+
+router.register(
+    r'tournaments/(?P<id>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/referee-invitations',
+    RefereeInvitationViewSet,
+    basename='referee-invitations'
 )
 
 urlpatterns = [path('', include(router.urls))]
