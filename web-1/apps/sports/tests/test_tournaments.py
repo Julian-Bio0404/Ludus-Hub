@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 
 import pytest
 from apps.sports.models import Tournament
+from apps.users.tests.factories import UserFactory
 from apps.sports.tests.factories import (AthleteCompetitorFactory,
                                          CategoryFactory, SportFactory,
                                          TeamCompetitorFactory, TeamFactory,
@@ -189,3 +190,61 @@ class TestCompetitorCase:
         content = json.loads(response.content)
         assert len(content['results']) == 4
         assert response.status_code == status.HTTP_200_OK
+
+
+class TestTournamentAdministratorsCase:
+
+    def test_list_tournament_admin(self, trainer_client, api_client):
+        tournament = TournamentFactory(creator=trainer_client.user)
+        url = reverse('sports:administrators-list', args=[tournament.id])
+        tournament.administrators.add(UserFactory())
+
+        # Check with anonymous user
+        response = api_client.get(url)
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+        # Check with auth user
+        response = trainer_client.get(url)
+        content = json.loads(response.content)
+        assert len(content['results']) == 1
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_add_or_remove_tournament_admin(self, trainer_client, athlete_client, api_client):
+        tournament = TournamentFactory(creator=trainer_client.user)
+        url = reverse('sports:administrators-list', args=[tournament.id])
+        user = UserFactory()
+
+        # Check with anonymous user
+        body = {'action': 'add', 'usernames': [user.username]}
+        response = api_client.post(url, body, format='json')
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+        # Check with another user
+        response = athlete_client.post(url, body, format='json')
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+        # Check add action
+        response = trainer_client.post(url, body, format='json')
+        assert response.status_code == status.HTTP_200_OK
+        assert tournament.administrators.count() == 1
+
+        # Check remove action
+        body['action'] = 'remove'
+        response = trainer_client.post(url, body, format='json')
+        assert response.status_code == status.HTTP_200_OK
+        assert tournament.administrators.count() == 0
+
+
+class TestRefereeInvitationCase:
+
+    def create_referee_invitations(self, trainer_client, api_client):
+        pass
+
+    def list_referee_invitations(self, trainer_client, api_client):
+        pass
+
+    def accept_or_decline_invitation(self, trainer_client, api_client):
+        pass
+
+    def delete_referee_invitation(self, trainer_client, api_client):
+        pass

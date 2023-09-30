@@ -271,6 +271,8 @@ class AddAdminSerializer(serializers.Serializer):
     def validate(self, data):
         usernames = data['usernames']
         users = User.objects.filter(username__in=usernames)
+        if not users:
+            raise serializers.ValidationError('Users not found!')
         self.context['users'] = users
         return data
 

@@ -16,9 +16,15 @@ class HasCompetitors(BasePermission):
 class IsTournamentCreator(BasePermission):
     """Allow access only to tournament creator."""
 
+    def has_permission(self, request, view):
+        if hasattr(view, 'tournament'):
+            return request.user == view.tournament.creator
+        return True
+
     def has_object_permission(self, request, view, obj):
         """Check that requesting user is the tournament creator."""
-        return request.user == obj.creator
+        tournament = obj.tournament if hasattr(view, 'tournament') else obj
+        return request.user == tournament.creator
 
 
 class IsCreatorOrInvited(BasePermission):

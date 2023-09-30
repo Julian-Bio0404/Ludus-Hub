@@ -137,6 +137,13 @@ class AdministratorViewSet(mixins.ListModelMixin,
 
     serializer_class = UserModelSerializer
 
+    def get_permissions(self):
+        """Assign permissions based on action."""
+        permissions = [IsAuthenticated]
+        if self.action in ['create']:
+            permissions.append(IsTournamentCreator)
+        return [p() for p in permissions]
+
     def get_queryset(self):
         return self.tournament.administrators.all()
 
@@ -171,6 +178,8 @@ class RefereeInvitationViewSet(mixins.ListModelMixin,
     def get_permissions(self):
         """Assign permissions based on action."""
         permissions = [IsAuthenticated]
+        if self.action in ['create']:
+            permissions.append(IsTournamentCreator)
         if self.action in ['destroy']:
             permissions.append(IsCreatorOrInvited)
         elif self.action in ['update', 'partial_update']:
