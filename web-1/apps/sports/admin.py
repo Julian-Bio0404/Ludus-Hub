@@ -5,7 +5,8 @@ from apps.sports.models import (Assistance, Category, Club, Competitor, Draw,
                                 Group, GroupMatch, Invitation, Match, Member,
                                 Modality, Round, RoundGroup, RoundMatch, Rule,
                                 Sport, Tag, Team, Tournament)
-from apps.utils.admin import ImageAdminMixin
+from apps.utils.admin import (BaseNestedTabularInline, BaseTabularInline,
+                              ImageAdminMixin)
 from django.contrib import admin
 from django.db import models
 from django.urls import reverse
@@ -14,20 +15,10 @@ from django_json_widget.widgets import JSONEditorWidget
 from taskapp.tasks import create_sport_rules
 
 
-class BaseCategoryInline(nested_admin.NestedTabularInline):
-
-    extra = 0
-    verbose_name = 'Category'
-    verbose_name_plural = 'Categories'
-    suit_form_inlines_hide_original = True
-
-
-class TeamMemberInline(admin.TabularInline):
+class TeamMemberInline(BaseTabularInline):
     """Team member inline admin."""
 
     model = Team.users.through
-    suit_form_inlines_hide_original = True
-    extra = 0
     can_delete = False
     verbose_name_plural = 'Team members'
     suit_classes = 'suit-tab suit-tab-members'
@@ -39,13 +30,11 @@ class TeamMemberInline(admin.TabularInline):
         return False
 
 
-class MemberInline(admin.TabularInline):
+class MemberInline(BaseTabularInline):
     """Club member inline admin."""
 
     model = Member
-    suit_form_inlines_hide_original = True
-    readonly_fields = ['user', 'active']
-    extra = 0
+    # readonly_fields = ['user', 'active']
     can_delete = False
     verbose_name_plural = 'members'
     suit_classes = 'suit-tab suit-tab-members'
@@ -54,13 +43,11 @@ class MemberInline(admin.TabularInline):
         return False
 
 
-class TeamInline(admin.TabularInline):
+class TeamInline(BaseTabularInline):
     """Team inline admin."""
 
     model = Team
-    suit_form_inlines_hide_original = True
     readonly_fields = ['club', 'category', 'team_name']
-    extra = 0
     can_delete = False
     verbose_name_plural = 'teams'
     fields = ['team_name', 'category']
@@ -71,6 +58,7 @@ class TeamInline(admin.TabularInline):
             url = reverse('admin:sports_team_change', args=[obj.pk])
             return mark_safe('<a href="{}">{}</a>'.format(url, obj.name))
         return '-'
+
     team_name.short_description = 'Name'
     team_name.allow_tags = True
 
@@ -78,13 +66,11 @@ class TeamInline(admin.TabularInline):
         return False
 
 
-class InvitationInline(admin.TabularInline):
+class InvitationInline(BaseTabularInline):
     """Club invitation inline admin."""
 
     model = Invitation
-    suit_form_inlines_hide_original = True
     readonly_fields = ['sent_by', 'invited', 'used']
-    extra = 0
     can_delete = False
     verbose_name_plural = 'invitations'
     suit_classes = 'suit-tab suit-tab-invitations'
@@ -93,13 +79,11 @@ class InvitationInline(admin.TabularInline):
         return False
 
 
-class AssistanceInline(admin.TabularInline):
+class AssistanceInline(BaseTabularInline):
     """Club assistance inline admin."""
 
     model = Assistance
-    suit_form_inlines_hide_original = True
     readonly_fields = ['user', 'club']
-    extra = 0
     can_delete = False
     verbose_name_plural = 'assistances'
     suit_classes = 'suit-tab suit-tab-assistances'
@@ -150,14 +134,14 @@ class ClubAdmin(admin.ModelAdmin, ImageAdminMixin):
         ('assistances', 'Assistances')
     )
 
-    def has_add_permission(self, request, obj=None) -> bool:
-        return False
+    # def has_add_permission(self, request, obj=None) -> bool:
+    #     return False
 
-    def has_delete_permission(self, request, obj=None) -> bool:
-        return False
+    # def has_delete_permission(self, request, obj=None) -> bool:
+    #     return False
 
-    def has_change_permission(self, request, obj=None) -> bool:
-        return False
+    # def has_change_permission(self, request, obj=None) -> bool:
+    #     return False
 
 
 @admin.register(Team)
@@ -193,33 +177,27 @@ class TeamAdmin(admin.ModelAdmin):
         return False
 
 
-class CategoryInline(admin.TabularInline):
+class CategoryInline(BaseTabularInline):
     """Category inline admin."""
 
     model = Sport.categories.through
     suit_classes = 'suit-tab suit-tab-categories'
-    extra = 0
     verbose_name_plural = 'Categories'
-    suit_form_inlines_hide_original = True
 
 
-class TagInline(admin.TabularInline):
+class TagInline(BaseTabularInline):
     """Tag inline admin."""
 
     model = Sport.tags.through
     suit_classes = 'suit-tab suit-tab-tags'
-    extra = 0
     verbose_name_plural = 'Tags'
-    suit_form_inlines_hide_original = True
 
 
-class RuleInline(admin.TabularInline):
+class RuleInline(BaseTabularInline):
     """Sport Rules inline."""
 
     model = Rule
     suit_classes = 'suit-tab suit-tab-rules'
-    extra = 0
-    suit_form_inlines_hide_original = True
 
     formfield_overrides = {
         models.JSONField: {'widget': JSONEditorWidget(mode='tree')}
@@ -329,28 +307,35 @@ class SportAdmin(admin.ModelAdmin, ImageAdminMixin):
         return super().save_formset(request, form, formset, change)
 
 
-class TournamentCategoryInline(BaseCategoryInline):
+class TournamentCategoryInline(BaseNestedTabularInline):
     """Category inline admin."""
 
     model = Tournament.categories.through
     suit_classes = 'suit-tab suit-tab-categories'
+    verbose_name = 'Category'
+    verbose_name_plural = 'Categories'
 
 
-class RefereesInline(nested_admin.NestedTabularInline):
+class RefereesInline(BaseNestedTabularInline):
     """Referees inline."""
 
     model = Tournament.referees.through
-    extra = 0
     verbose_name_plural = 'Referees'
-    suit_form_inlines_hide_original = True
     suit_classes = 'suit-tab suit-tab-referees'
 
 
-class BaseCompetitorInline(nested_admin.NestedTabularInline):
+class RefereeInvitations(BaseNestedTabularInline):
+    """Referee invitation inine admin."""
+
+    model = Tournament.referee_invitations.through
+    verbose_name_plural = 'Referee invitations'
+    suit_classes = 'suit-tab suit-tab-referee-invitations'
+
+
+class BaseCompetitorInline(BaseNestedTabularInline):
     """Base competitor inline admin."""
-    extra = 0
+
     verbose_name_plural = 'Competitors'
-    suit_form_inlines_hide_original = True
 
 
 class CompetitorInline(BaseCompetitorInline):
@@ -378,22 +363,18 @@ class CompetitorsInline(BaseCompetitorInline):
     rating.allow_tags = True
 
 
-class GroupMatchInline(nested_admin.NestedTabularInline):
+class GroupMatchInline(BaseNestedTabularInline):
     """Group Match inline admin."""
 
     model = GroupMatch
-    extra = 0
     verbose_name_plural = 'Matches Group'
-    suit_form_inlines_hide_original = True
 
 
-class RoundMatchInline(nested_admin.NestedTabularInline):
+class RoundMatchInline(BaseNestedTabularInline):
     """Round Match inline admin."""
 
     model = RoundMatch
-    extra = 0
     verbose_name_plural = 'Matches'
-    suit_form_inlines_hide_original = True
     readonly_fields = ['clash']
 
     def clash(self, obj):
@@ -405,13 +386,11 @@ class RoundMatchInline(nested_admin.NestedTabularInline):
     clash.allow_tags = True
 
 
-class RoundGroupInline(nested_admin.NestedTabularInline):
+class RoundGroupInline(BaseNestedTabularInline):
     """Round Group inline admin."""
 
     model = RoundGroup
-    extra = 0
     verbose_name_plural = 'Matches Groups'
-    suit_form_inlines_hide_original = True
     readonly_fields = ['group_matches']
 
     def group_matches(self, obj):
@@ -419,29 +398,34 @@ class RoundGroupInline(nested_admin.NestedTabularInline):
             url = reverse('admin:sports_group_change', args=[obj.group.pk])
             return mark_safe('<a href="{}">{}</a>'.format(url, obj.group))
         return '-'
+
     group_matches.short_description = 'Match Group Link'
     group_matches.allow_tags = True
 
 
-class RoundInline(nested_admin.NestedTabularInline):
+class RoundInline(BaseNestedTabularInline):
     """Round inline admin."""
 
     model = Round
-    extra = 0
     verbose_name_plural = 'Rounds'
-    suit_form_inlines_hide_original = True
     inlines = [RoundMatchInline, RoundGroupInline]
 
 
-class DrawInline(nested_admin.NestedTabularInline):
+class DrawInline(BaseNestedTabularInline):
     """Draw inline admin"""
 
     model = Draw
-    extra = 0
     verbose_name_plural = 'Draws'
-    suit_form_inlines_hide_original = True
     suit_classes = 'suit-tab suit-tab-draws'
     inlines = [RoundInline]
+
+
+class AdministratorInline(BaseNestedTabularInline):
+    """Administrator inline admin."""
+
+    model = Tournament.administrators.through
+    verbose_name_plural = 'Administrators'
+    suit_classes = 'suit-tab suit-tab-administrators'
 
 
 @admin.register(Tournament)
@@ -457,6 +441,8 @@ class TournamentAdmin(nested_admin.NestedModelAdmin):
     inlines = [
         TournamentCategoryInline,
         RefereesInline,
+        RefereeInvitations,
+        AdministratorInline,
         CompetitorInline,
         DrawInline
     ]
@@ -477,6 +463,8 @@ class TournamentAdmin(nested_admin.NestedModelAdmin):
         ('details', 'Details'),
         ('categories', 'Categories'),
         ('referees', 'Referees'),
+        ('referee-invitations', 'Referee Invitations'),
+        ('administrators', 'Administrators'),
         ('competitors', 'Competitors'),
         ('draws', 'Draws'),
     )

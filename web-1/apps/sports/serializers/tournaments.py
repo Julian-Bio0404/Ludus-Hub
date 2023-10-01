@@ -1,8 +1,8 @@
 """Tournament serializers."""
 
 from apps.sports.adapters import SPORT_ADAPTERS_MAPPING
-from apps.sports.models import (Category, Competitor, Draw, Round, Rule, Sport,
-                                Team, Tournament)
+from apps.sports.models import (Category, Competitor, Draw, RefereeInvitation,
+                                Round, Rule, Sport, Team, Tournament)
 from apps.sports.serializers import (CategoryModelSerializer,
                                      SportModelSerializer, TeamModelSerializer)
 from apps.users.models import User
@@ -260,3 +260,74 @@ class DrawModelSerializer(serializers.ModelSerializer):
             'created', 'updated'
         ]
         read_only_fields = ['category', 'rounds']
+
+
+class AddAdminSerializer(serializers.Serializer):
+    """Add a admin to a tournament"""
+
+    usernames = serializers.ListField(child=serializers.CharField())
+    action = serializers.ChoiceField(choices=['add', 'remove'])
+
+    def validate(self, data):
+        usernames = data['usernames']
+        users = User.objects.filter(username__in=usernames)
+        if not users:
+            raise serializers.ValidationError('Users not found!')
+        self.context['users'] = users
+        return data
+
+    def save(self, **kwargs):
+        action = self.data['action']
+        tournament = self.context['tournament']
+        if action == 'add':
+            tournament.administrators.add(*self.context['users'])
+        elif action == 'remove':
+            tournament.administrators.remove(*self.context['users'])
+        return tournament
+
+
+class RefereeInvitationModelSerializer(serializers.ModelSerializer):
+    """Referee invitation model serializer."""
+
+    sent_by = UserModelSerializer(read_only=True)
+    invited = UserModelSerializer(read_only=True)
+
+    class Meta:
+        """Meta options."""
+        model = RefereeInvitation
+        fields = [
+            'id', 'sent_by', 'invited',
+            'used', 'created', 'updated'
+        ]
+
+
+class CreateRefereeInvitationSerializer(serializers.Serializer):
+    """Create referee invitation serializer."""
+
+    usernames = serializers.ListField(child=serializers.CharField())
+
+    def validate(self, data):
+        usernames = data['usernames']
+        tournament = self.context['tournament']
+        referee_ids = tournament.referees.values_list('id', flat=True)
+        invited_ids = tournament.referee_invitations.values_list('invited__id', flat=True)
+        user_ids = list(referee_ids) + list(invited_ids)
+        users = User.objects.filter(username__in=usernames).exclude(id__in=user_ids)
+        if not users:
+            raise serializers.ValidationError('Users not found!')
+        self.context['users'] = users
+        return data
+
+    def save(self, **kwargs):
+        tournament = self.context['tournament']
+        users = self.context['users']
+        batch = [
+            RefereeInvitation(
+                sent_by=self.context['creator'],
+                invited=user,
+                tournament=tournament
+            ) for user in users
+        ]
+        invitations = RefereeInvitation.objects.bulk_create(batch)
+        tournament.referee_invitations.add(*invitations)
+        return invitations

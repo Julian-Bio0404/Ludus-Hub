@@ -1,6 +1,6 @@
 """Member models."""
 
-from apps.utils.models import BaseAbstractModel, BaseModel
+from apps.utils.models import BaseAbstractModel, BaseInvitation, BaseModel
 from django.db import models
 
 
@@ -25,7 +25,7 @@ class Member(BaseAbstractModel):
         return f'@{self.user.username} at {self.club.slug}'
 
 
-class Invitation(BaseAbstractModel):
+class Invitation(BaseInvitation):
     """Invitation model."""
 
     sent_by = models.ForeignKey('users.User', on_delete=models.CASCADE)
@@ -34,8 +34,6 @@ class Invitation(BaseAbstractModel):
         'users.User', on_delete=models.CASCADE, related_name='invited')
 
     club = models.ForeignKey('sports.Club', on_delete=models.CASCADE)
-
-    used = models.BooleanField(default=False)
 
     def __str__(self) -> str:
         """Return club and athlete."""

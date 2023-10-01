@@ -4,10 +4,11 @@ from datetime import datetime, timedelta
 
 import pytest
 from apps.sports.models import Tournament
+from apps.users.tests.factories import UserFactory
 from apps.sports.tests.factories import (AthleteCompetitorFactory,
                                          CategoryFactory, SportFactory,
                                          TeamCompetitorFactory, TeamFactory,
-                                         TournamentFactory)
+                                         TournamentFactory, RefereeInvitationFactory)
 from django.urls import reverse
 from rest_framework import status
 
@@ -189,3 +190,121 @@ class TestCompetitorCase:
         content = json.loads(response.content)
         assert len(content['results']) == 4
         assert response.status_code == status.HTTP_200_OK
+
+
+class TestTournamentAdministratorsCase:
+
+    def test_list_tournament_admin(self, trainer_client, api_client):
+        tournament = TournamentFactory(creator=trainer_client.user)
+        url = reverse('sports:administrators-list', args=[tournament.id])
+        tournament.administrators.add(UserFactory())
+
+        # Check with anonymous user
+        response = api_client.get(url)
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+        # Check with auth user
+        response = trainer_client.get(url)
+        content = json.loads(response.content)
+        assert len(content['results']) == 1
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_add_or_remove_tournament_admin(self, trainer_client, athlete_client, api_client):
+        tournament = TournamentFactory(creator=trainer_client.user)
+        url = reverse('sports:administrators-list', args=[tournament.id])
+        user = UserFactory()
+
+        # Check with anonymous user
+        body = {'action': 'add', 'usernames': [user.username]}
+        response = api_client.post(url, body, format='json')
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+        # Check with another user
+        response = athlete_client.post(url, body, format='json')
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+        # Check add action
+        response = trainer_client.post(url, body, format='json')
+        assert response.status_code == status.HTTP_200_OK
+        assert tournament.administrators.count() == 1
+
+        # Check remove action
+        body['action'] = 'remove'
+        response = trainer_client.post(url, body, format='json')
+        assert response.status_code == status.HTTP_200_OK
+        assert tournament.administrators.count() == 0
+
+
+class TestRefereeInvitationCase:
+
+    def test_create_referee_invitations(self, trainer_client, athlete_client, api_client):
+        tournament = TournamentFactory(creator=trainer_client.user)
+        url = reverse('sports:referee-invitations-list', args=[tournament.id])
+        body = {'usernames': [athlete_client.user.username]}
+
+        # Check with another user
+        response = athlete_client.post(url, body, format='json')
+        invitations = tournament.referee_invitations.all()
+        assert invitations.count() == 0
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+        # Check with tournament creator
+        response = trainer_client.post(url, body, format='json')
+        invitations = tournament.referee_invitations.all()
+        assert invitations.count() == 1
+        assert response.status_code == status.HTTP_201_CREATED
+
+        # Check with usernames of users that do not exist
+        body['usernames'] = ['julian0404']
+        response = trainer_client.post(url, body, format='json')
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_list_referee_invitations(self, trainer_client, api_client):
+        tournament = TournamentFactory(creator=trainer_client.user)
+        url = reverse('sports:referee-invitations-list', args=[tournament.id])
+        tournament.referee_invitations.add(RefereeInvitationFactory())
+
+        # Check with anonymous user
+        response = api_client.get(url)
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+        # Check with auth user
+        response = trainer_client.get(url)
+        content = json.loads(response.content)
+        assert len(content['results']) == 1
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_accept_or_decline_invitation(self, trainer_client, athlete_client, api_client):
+        tournament = TournamentFactory(creator=trainer_client.user)
+        invitation = RefereeInvitationFactory(
+            sent_by=trainer_client.user, invited=athlete_client.user)
+        tournament.referee_invitations.add(invitation)
+        url = reverse('sports:referee-invitations-detail', args=[tournament.id, invitation.id])
+        body = {'used': True}
+
+        # Check with anonymous user
+        response = api_client.patch(url, body, format='json')
+        invitation.refresh_from_db()
+        assert invitation.used is False
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+        # Check with auth user
+        response = athlete_client.patch(url, body, format='json')
+        invitation.refresh_from_db()
+        assert response.status_code == status.HTTP_200_OK
+        assert invitation.used is True
+
+    def test_delete_referee_invitation(self, trainer_client, api_client):
+        tournament = TournamentFactory(creator=trainer_client.user)
+        invited = UserFactory()
+        invitation = RefereeInvitationFactory(sent_by=trainer_client.user, invited=invited)
+        tournament.referee_invitations.add(invitation)
+        url = reverse('sports:referee-invitations-detail', args=[tournament.id, invitation.id])
+
+        # Check with anonymous user
+        response = api_client.delete(url)
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+        # Check with auth user
+        response = trainer_client.delete(url)
+        assert response.status_code == status.HTTP_204_NO_CONTENT
