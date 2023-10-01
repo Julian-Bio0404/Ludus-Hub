@@ -313,6 +313,8 @@ class CreateRefereeInvitationSerializer(serializers.Serializer):
         invited_ids = tournament.referee_invitations.values_list('invited__id', flat=True)
         user_ids = list(referee_ids) + list(invited_ids)
         users = User.objects.filter(username__in=usernames).exclude(id__in=user_ids)
+        if not users:
+            raise serializers.ValidationError('Users not found!')
         self.context['users'] = users
         return data
 

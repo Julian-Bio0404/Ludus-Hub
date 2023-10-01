@@ -5,7 +5,7 @@ from typing import Any, Sequence
 
 from apps.sports.models import (Assistance, Category, Club, Competitor,
                                 Invitation, Member, Modality, Sport, Tag, Team,
-                                Tournament)
+                                Tournament, RefereeInvitation)
 from apps.users.tests.factories import UserFactory
 from factory import Faker, SubFactory, post_generation
 from factory.django import DjangoModelFactory
@@ -173,3 +173,13 @@ class TeamCompetitorFactory(BaseCompetitorFactory):
     """Competitor model factory."""
 
     team = SubFactory(TeamFactory)
+
+
+class RefereeInvitationFactory(DjangoModelFactory):
+    """Referee invitation factory."""
+
+    sent_by = SubFactory(UserFactory)
+    invited = SubFactory(UserFactory)
+
+    class Meta:
+        model = RefereeInvitation
