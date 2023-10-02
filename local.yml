@@ -25,7 +25,7 @@ services:
     container_name: postgres
 
   mongodb:
-    image: mongo:latest
+    image: mongo:7.0.1
     volumes:
       - local_mongo_data:/data/db
     env_file: ./.env
@@ -34,7 +34,7 @@ services:
     container_name: mongodb
 
   redis:
-    image: redis:7.0.11-alpine
+    image: redis:7.2.1-alpine
     deploy:
       resources:
         limits:
@@ -42,7 +42,7 @@ services:
     container_name: redis
 
   elasticsearch:
-    image: elasticsearch:7.17.10
+    image: elasticsearch:7.17.13
     volumes:
       - local_elasticsearch_data:/usr/share/elasticsearch/data
     environment:

@@ -2,15 +2,15 @@
 
 Ludus-Hub backend, an application that connects coaches with athletes and allows for managing a sports club and sports events.
 
-![](https://img.shields.io/badge/python-v3.11.3-blue)
-![](https://img.shields.io/badge/django-v4.2.1-blue)
-![](https://img.shields.io/badge/fastapi-v0.95.1-blue)
+![](https://img.shields.io/badge/python-v3.11.5-blue)
+![](https://img.shields.io/badge/django-v4.2.5-blue)
+![](https://img.shields.io/badge/fastapi-v0.103.2-blue)
 ![](https://img.shields.io/badge/djangorestframework-v3.14.0-blue)
-![](https://img.shields.io/badge/celery-v5.2.7-blue)
-![](https://img.shields.io/badge/postgres-v15.2-blue)
-![](https://img.shields.io/badge/pymongo-v4.3.3-blue)
-![](https://img.shields.io/badge/elasticsearch-v7.17.10-blue)
-![](https://img.shields.io/badge/redis-v7.0.11-blue)
+![](https://img.shields.io/badge/celery-v5.3.4-blue)
+![](https://img.shields.io/badge/postgres-v16.0-blue)
+![](https://img.shields.io/badge/mongodb-v7.0.1-blue)
+![](https://img.shields.io/badge/elasticsearch-v7.17.13-blue)
+![](https://img.shields.io/badge/redis-v7.2.1-blue)
 
 
 ## Required software:
