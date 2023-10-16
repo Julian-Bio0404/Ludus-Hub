@@ -36,17 +36,12 @@ async def club_messages(
     ]
     await websocket.send_json(data)
     while True:
-        data = {}
         now = datetime.now()
-        data['text'] = await websocket.receive_text()
-        data['sender'] = user.username
-        data['date'] = now.strftime('%d-%m-%Y, %H:%M')
-        data['room'] = slug
-        id = mongo_client.local.messages.insert_one(data).inserted_id
-        messages = mongo_client.local.messages.find({'_id': id})
-        data = [
-            dict(
-                ReadMessageSchema(**{**message, '_id': str(message['_id'])})
-            ) for message in messages
-        ]
-        await websocket.send_json(data)
+        data = {
+            'text': await websocket.receive_text(),
+            'sender': user.username,
+            'date': now.strftime('%d-%m-%Y, %H:%M'),
+            'room': slug
+        }
+        data['_id'] = str(mongo_client.local.messages.insert_one(data).inserted_id)
+        await websocket.send_json([data])
