@@ -1,5 +1,6 @@
 """Web 2 settings."""
 
+import logging
 from functools import lru_cache
 from pathlib import Path
 
@@ -54,3 +55,7 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)

@@ -1,12 +1,12 @@
 from datetime import datetime
 
 from app.middlewares.authtoken import WebSocketAuthToken
-from app.queries import clubs
 from app.schemas.chat import ReadMessageSchema
 from app.templates import club_chat
-from fastapi import FastAPI, WebSocket, WebSocketException, status
+from app.utils.websockets import validate_club_member
+from fastapi import Depends, FastAPI, WebSocket
 from fastapi.responses import HTMLResponse
-from settings import get_db, mongo_client
+from settings import mongo_client
 from starlette.middleware.authentication import AuthenticationMiddleware
 
 app = FastAPI()
@@ -20,27 +20,13 @@ async def chat():
 
 
 @app.websocket('/chat/clubs/{slug}/ws')
-async def club_messages(websocket: WebSocket, slug: str):
+async def club_messages(
+    websocket: WebSocket,
+    slug: str,
+    deps: tuple = Depends(validate_club_member)
+):
     """Send or get messages to/of a club."""
-    user = websocket.scope.get('user')
-    if not user:
-        raise WebSocketException(
-            code=status.WS_1008_POLICY_VIOLATION,
-            reason='You must provide the authentication credentials')
-
-    db = get_db()
-    club = clubs.get_club(next(db), slug=slug)
-    if not club:
-        raise WebSocketException(
-            code=status.WS_1014_BAD_GATEWAY,
-            reason='Club does not exist')
-
-    members = [i.user.username for i in club.members]
-    if user.username not in members:
-        raise WebSocketException(
-            code=status.WS_1014_BAD_GATEWAY,
-            reason='Do you not have permission for this action')
-
+    user, _ = deps
     await websocket.accept()
     messages = mongo_client.local.messages.find({'room': slug})
     data = [
