@@ -27,7 +27,7 @@ services:
     container_name: postgres
 
   mongodb:
-    image: mongo:latest
+    image: mongo:7.0.1
     volumes:
       - local_mongo_data:/data/db
     env_file: ./.env
@@ -38,13 +38,13 @@ services:
     container_name: mongodb
 
   redis:
-    image: redis:7.0.11-alpine
+    image: redis:7.2.1-alpine
     container_name: redis
     restart: always
     container_name: redis
 
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.10
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.13
     volumes:
       - certs:/usr/share/elasticsearch/config/certs
     user: "0"

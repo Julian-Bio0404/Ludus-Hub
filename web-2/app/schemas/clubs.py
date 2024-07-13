@@ -13,7 +13,7 @@ class ClubSchema(BaseModel):
     name: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class MemberSchema(BaseModel):
@@ -26,4 +26,4 @@ class MemberSchema(BaseModel):
     active: bool
 
     class Config:
-        orm_mode = True
+        from_attributes = True
