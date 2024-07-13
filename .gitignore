@@ -3,3 +3,4 @@ venv/
 .env
 media/
 staticfiles/
+.coverage
